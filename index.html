@@ -3,23 +3,94 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <!-- Rename your collection here and in assets/app.js (SITE_NAME) -->
-  <title>Mise · Recipe Box</title>
+  <title>The Pantry — Recipes</title>
   <meta name="description" content="A personal recipe collection with step timers and ingredient scaling." />
-  <meta name="theme-color" content="#33523e" />
+
+  <!-- Favicon: a little simmering pot -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2333512f'/%3E%3Cpath d='M7 15h18v6a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4z' fill='%23f5f1e8'/%3E%3Crect x='4' y='13' width='24' height='2.4' rx='1.2' fill='%23f5f1e8'/%3E%3Cpath d='M12 9c0-2 2-2 2-4M18 9c0-2 2-2 2-4' stroke='%23d0402a' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+  <!-- PWA / installability -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#33512f" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="The Pantry" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="assets/styles.css" />
 </head>
-<body>
-  <div id="app" aria-live="polite"></div>
+<body class="route-list">
+  <div id="app">
+    <header class="site-header">
+      <a class="brand" href="#/">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="7" fill="currentColor"/><path d="M7 15h18v6a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4z" fill="#f5f1e8"/><rect x="4" y="13" width="24" height="2.4" rx="1.2" fill="#f5f1e8"/><path d="M12 9c0-2 2-2 2-4M18 9c0-2 2-2 2-4" stroke="#d0402a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+        </span>
+        <span class="brand__name">The Pantry</span>
+      </a>
+      <nav class="site-nav">
+        <a href="#/" class="site-nav__link">All recipes</a>
+        <button id="install-btn" class="install-btn" hidden>Install app</button>
+      </nav>
+    </header>
 
-  <!-- Live timers dock (populated by JS) -->
-  <div id="timer-dock" class="dock" hidden></div>
+    <main id="view" class="view" aria-live="polite">
+      <!-- Rendered by app.js -->
+    </main>
+  </div>
 
-  <script src="assets/app.js" defer></script>
+  <script src="assets/app.js"></script>
+
+  <!-- PWA: service worker + install button -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch((err) =>
+          console.warn("SW registration failed:", err));
+      });
+    }
+
+    (function () {
+      const btn = document.getElementById("install-btn");
+      if (!btn) return;
+      let deferred = null;
+
+      // Chrome / Edge / Android: capture the install prompt and show our button.
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferred = e;
+        btn.hidden = false;
+      });
+
+      btn.addEventListener("click", async () => {
+        if (deferred) {
+          deferred.prompt();
+          const { outcome } = await deferred.userChoice;
+          if (outcome === "accepted") btn.hidden = true;
+          deferred = null;
+          return;
+        }
+        // iOS Safari has no install event — show a hint instead.
+        alert("To install: tap the Share button, then \u201CAdd to Home Screen\u201D.");
+      });
+
+      window.addEventListener("appinstalled", () => { btn.hidden = true; deferred = null; });
+
+      // Hide the button if already running as an installed app.
+      if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
+        btn.hidden = true;
+      }
+
+      // iOS doesn't fire beforeinstallprompt, so reveal the button there so users get the hint.
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const installed = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+      if (isIOS && !installed) btn.hidden = false;
+    })();
+  </script>
 </body>
 </html>
