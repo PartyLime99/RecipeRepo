@@ -25,8 +25,17 @@ Install prompt and offline caching need HTTPS, which Pages provides. When you ch
 
 ## Adding a recipe
 
-1. Add `recipes/<slug>.json` (schema below).
-2. Add `"<slug>"` to the array in `recipes/index.json`.
+On GitHub Pages, just add `recipes/<slug>.json` and commit — the site lists the `recipes/` folder automatically (via the GitHub API), so the recipe appears with no index editing. `<slug>` must match the filename minus `.json`.
+
+**How discovery works and its fallbacks.** The app first asks the GitHub API to list `recipes/`. If that isn't available — you're testing locally, you're offline, or the repo is private — it falls back to a static `recipes/index.json`, and then to the last list it saw (so an installed app still works offline). This means:
+
+- **Public repo on Pages:** drop the file in, done. `index.json` is optional.
+- **Local testing (`file://` or localhost):** keep `recipes/index.json` up to date (a JSON array of slugs, e.g. `["chorizo-pasta"]`), since the API isn't used there.
+- **Private repo:** the unauthenticated API can't list it — keep `recipes/index.json` current, or generate it with a GitHub Action.
+
+The app auto-detects your `owner/repo` from the Pages URL. If detection ever fails, set `REPO_OVERRIDE = { owner: "you", repo: "YourRepo" }` at the top of `assets/app.js`.
+
+> Note: the unauthenticated GitHub API allows 60 requests/hour per IP. The site uses one request per home-page load, so this is plenty for personal use; if you ever hit it, the app falls back to the cached list automatically.
 
 ### Recipe schema
 
