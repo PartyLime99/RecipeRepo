@@ -1,0 +1,61 @@
+{
+  "slug": "chorizo-pasta",
+  "title": "Creamy Chorizo Pasta",
+  "subtitle": "One pot · ready in 20 minutes",
+  "description": "Garlicky, smoky and creamy — a comforting one-pot pasta that comes together in under 20 minutes with just a handful of ingredients.",
+  "image": "https://myriadrecipes.com/wp-content/uploads/2026/07/chorizo-pasta-15.jpg",
+  "source": {
+    "name": "Myriad Recipes · Emily Roz",
+    "url": "https://myriadrecipes.com/chorizo-pasta/"
+  },
+  "servings": 2,
+  "servingNoun": "people",
+  "times": { "prep": "2 min", "cook": "18 min", "total": "20 min" },
+  "tags": ["Dinner", "Pasta", "One pot", "Under 20 min"],
+  "ingredients": [
+    { "quantity": 1, "unit": null, "item": "white onion", "note": "finely diced" },
+    { "quantity": 4, "unit": null, "item": "garlic cloves", "note": "finely chopped" },
+    { "quantity": 150, "unit": "g", "item": "chorizo", "note": "finely cubed" },
+    { "quantity": 1, "unit": "tsp", "item": "paprika" },
+    { "quantity": 1, "unit": "tsp", "item": "dried oregano" },
+    { "quantity": 750, "unit": "ml", "item": "chicken stock", "note": "1 stock cube + 750ml boiling water" },
+    { "quantity": 200, "unit": "g", "item": "dried pasta" },
+    { "quantity": 200, "unit": "ml", "item": "cream", "note": "single or heavy" },
+    { "quantity": 1, "unit": "tsp", "item": "balsamic vinegar" },
+    { "quantity": 25, "unit": "g", "item": "parmesan", "note": "grated" },
+    { "quantity": 5, "unit": "g", "item": "chives", "note": "finely sliced" },
+    { "quantity": null, "unit": null, "item": "olive oil", "note": "for frying", "scale": false },
+    { "quantity": null, "unit": null, "item": "salt & black pepper", "note": "to taste", "scale": false }
+  ],
+  "steps": [
+    {
+      "title": "Soften the aromatics",
+      "text": "Place a deep skillet or frying pan on medium heat and drizzle with olive oil. Add the garlic and onion and fry until softened.",
+      "timer": 300,
+      "timerLabel": "Fry garlic & onion"
+    },
+    {
+      "title": "Brown the chorizo",
+      "text": "Add the chorizo and fry for a few minutes until it releases its oils and colours the pan.",
+      "timer": 300,
+      "timerLabel": "Fry chorizo",
+      "note": "Want a richer sauce? Add 1 tbsp tomato paste and fry it with the onion, garlic and chorizo."
+    },
+    {
+      "title": "Simmer the pasta",
+      "text": "Stir in the paprika, dried oregano, 500ml of the chicken stock (keep the rest to top up) and the dried pasta — it should be just covered by the liquid. Put the lid on and simmer, stirring occasionally so it doesn't stick, until the pasta is nearly al dente. Add a splash more stock if it looks dry.",
+      "timer": 480,
+      "timerLabel": "Simmer pasta"
+    },
+    {
+      "title": "Make it creamy",
+      "text": "Take off the lid and stir in the cream and balsamic vinegar. Season with salt and pepper to taste. Simmer until the sauce thickens slightly and the pasta finishes cooking.",
+      "timer": 120,
+      "timerLabel": "Thicken sauce"
+    },
+    {
+      "title": "Serve",
+      "text": "Once it's as saucy as you like and the pasta is al dente, divide between bowls and top with grated parmesan and finely sliced chives. Enjoy!"
+    }
+  ]
+}
