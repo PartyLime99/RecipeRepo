@@ -1,7 +1,7 @@
 {
-  "name": "The Pantry — Recipes",
-  "short_name": "The Pantry",
-  "description": "A personal recipe collection with step timers and ingredient scaling.",
+  "name": "Mise — Recipes",
+  "short_name": "Mise",
+  "description": "A personal recipe collection with step timers, ingredient scaling, and dietary modes.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

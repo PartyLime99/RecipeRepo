@@ -3,8 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>The Pantry — Recipes</title>
-  <meta name="description" content="A personal recipe collection with step timers and ingredient scaling." />
+  <title>Mise — Recipes</title>
+  <meta name="description" content="A personal recipe collection with step timers, ingredient scaling, and dietary modes." />
+
+  <!-- Boot theme before paint to avoid a flash -->
+  <script>
+    (function () {
+      try {
+        var pref = localStorage.getItem("mise:theme") || "system";
+        var dark = pref === "dark" || (pref === "system" &&
+          window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    })();
+  </script>
 
   <!-- Favicon: a little simmering pot -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2333512f'/%3E%3Cpath d='M7 15h18v6a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4z' fill='%23f5f1e8'/%3E%3Crect x='4' y='13' width='24' height='2.4' rx='1.2' fill='%23f5f1e8'/%3E%3Cpath d='M12 9c0-2 2-2 2-4M18 9c0-2 2-2 2-4' stroke='%23d0402a' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
@@ -16,7 +30,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="The Pantry" />
+  <meta name="apple-mobile-web-app-title" content="Mise" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -31,11 +45,14 @@
         <span class="brand__mark" aria-hidden="true">
           <svg viewBox="0 0 32 32" width="26" height="26"><rect width="32" height="32" rx="7" fill="currentColor"/><path d="M7 15h18v6a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4z" fill="#f5f1e8"/><rect x="4" y="13" width="24" height="2.4" rx="1.2" fill="#f5f1e8"/><path d="M12 9c0-2 2-2 2-4M18 9c0-2 2-2 2-4" stroke="#d0402a" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
         </span>
-        <span class="brand__name">The Pantry</span>
+        <span class="brand__name">Mise</span>
       </a>
       <nav class="site-nav">
         <a href="#/" class="site-nav__link">All recipes</a>
         <button id="install-btn" class="install-btn" hidden>Install app</button>
+        <button id="settings-btn" class="icon-btn" aria-label="Settings" title="Settings">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 .3.7l.6.6a1 1 0 0 0 1.4 0l1.6-1.6 2 2-1.6 1.6a1 1 0 0 0 0 1.4l.6.6a1 1 0 0 0 .7.3H23v2.8h-2.3a1 1 0 0 0-.7.3l-.6.6a1 1 0 0 0 0 1.4l1.6 1.6-2 2-1.6-1.6a1 1 0 0 0-1.4 0l-.6.6a1 1 0 0 0-.3.7V23h-2.8v-2.3a1 1 0 0 0-.3-.7l-.6-.6a1 1 0 0 0-1.4 0L7.1 21 5 19l1.6-1.6a1 1 0 0 0 0-1.4l-.6-.6a1 1 0 0 0-.7-.3H3v-2.8h1.3"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
       </nav>
     </header>
 
@@ -54,41 +71,26 @@
           console.warn("SW registration failed:", err));
       });
     }
-
     (function () {
       const btn = document.getElementById("install-btn");
       if (!btn) return;
       let deferred = null;
-
-      // Chrome / Edge / Android: capture the install prompt and show our button.
       window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferred = e;
-        btn.hidden = false;
+        e.preventDefault(); deferred = e; btn.hidden = false;
       });
-
       btn.addEventListener("click", async () => {
         if (deferred) {
           deferred.prompt();
           const { outcome } = await deferred.userChoice;
           if (outcome === "accepted") btn.hidden = true;
-          deferred = null;
-          return;
+          deferred = null; return;
         }
-        // iOS Safari has no install event — show a hint instead.
         alert("To install: tap the Share button, then \u201CAdd to Home Screen\u201D.");
       });
-
       window.addEventListener("appinstalled", () => { btn.hidden = true; deferred = null; });
-
-      // Hide the button if already running as an installed app.
-      if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
-        btn.hidden = true;
-      }
-
-      // iOS doesn't fire beforeinstallprompt, so reveal the button there so users get the hint.
-      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
       const installed = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+      if (installed) btn.hidden = true;
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
       if (isIOS && !installed) btn.hidden = false;
     })();
   </script>

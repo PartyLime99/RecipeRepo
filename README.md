@@ -1,101 +1,84 @@
-# The Pantry — a personal recipe site
+# Mise
 
-A static, installable recipe collection. Two-pane cooking view (ingredients + method scroll
-independently on large screens), live ingredient scaling by number of people, and a countdown
-timer built into every step. No build step, no server code — just files you can host on GitHub Pages.
+A personal, installable recipe site. Pure static files — no build step, no framework. Runs on GitHub Pages.
 
-## Install it on your phone or tablet (PWA)
+Features: recipe list with search, diet + ingredient filters, and favourites; a two‑pane cook view (ingredients and method scroll independently on wide screens, stack on mobile); per‑step countdown timers with a chime; ingredient scaling by number of people; tappable ingredients in the method that show quantities; dietary substitution modes (e.g. vegetarian / vegan); a nutrition popup; light/dark/system themes; and per‑recipe notes you can save. Favourites, notes and theme are stored on the device.
 
-The site is a Progressive Web App, so it can be installed like a native app.
+## Run locally
 
-- **Android / Chrome / Edge:** open the site, then tap the red **Install app** button in the top bar
-  (or the browser's own "Install" / "Add to Home screen" prompt). It gets its own icon and opens
-  full-screen with no address bar.
-- **Desktop Chrome / Edge:** click **Install app** in the top bar, or the install icon at the right
-  end of the address bar.
-- **iPhone / iPad (Safari):** tap the **Share** button, then **Add to Home Screen**. (Safari doesn't
-  support one-tap install, so this is the manual equivalent — the app icon and full-screen mode still work.)
+`fetch` is blocked on `file://`, so use a tiny local server:
 
-Once installed it also works **offline**: the app shell and any recipes you've opened are cached.
-
-> Installability only works over **https** (or `localhost`). GitHub Pages serves https, so it works there.
-> Opening the files from your hard drive (`file://`) will not offer install and will block recipe loading.
+```bash
+cd mise
+python3 -m http.server 8000
+# open http://localhost:8000
+```
 
 ## Deploy to GitHub Pages
 
-1. Create a repository and upload the **contents** of this folder (so `index.html` sits at the repo root).
-2. Repo **Settings → Pages → Build and deployment → Deploy from a branch**, pick your branch and the
-   `/ (root)` folder, save.
-3. Wait a minute, then open the URL Pages gives you. Done.
+1. Put the **contents** of this folder in the root of a repo (so `index.html` is at the top level).
+2. Push to GitHub.
+3. Settings → Pages → Build and deployment → **Deploy from a branch** → your branch, folder **/ (root)** → Save.
+4. Your site appears at `https://<user>.github.io/<repo>/`.
 
-## Run it locally
+Install prompt and offline caching need HTTPS, which Pages provides. When you change the app shell (HTML/CSS/JS/icons), bump `CACHE_VERSION` in `sw.js` so clients pick up the update.
 
-Because browsers block `fetch` on `file://`, use a tiny local server:
+## Adding a recipe
 
-```bash
-cd this-folder
-python3 -m http.server 8000
-# then open http://localhost:8000
-```
+1. Add `recipes/<slug>.json` (schema below).
+2. Add `"<slug>"` to the array in `recipes/index.json`.
 
-## Add a new recipe
-
-1. Drop a new `recipes/<slug>.json` file in the `recipes/` folder (see `chorizo-pasta.json` as the template).
-2. Add its slug to the array in `recipes/index.json`:
-
-   ```json
-   ["chorizo-pasta", "your-new-slug"]
-   ```
-
-3. Commit. That's it — the home page picks it up automatically.
-
-**If you change the app itself** (HTML/CSS/JS/icons), bump `CACHE_VERSION` in `sw.js` (e.g. `pantry-v1` → `pantry-v2`)
-so installed copies pull the update instead of serving the old cache.
-
-## Recipe file format (quick reference)
+### Recipe schema
 
 ```jsonc
 {
   "slug": "chorizo-pasta",              // must match the filename
   "title": "Creamy Chorizo Pasta",
   "subtitle": "One pot · 20 minutes",   // optional
-  "description": "Short blurb for the card and page.",
-  "image": "https://…/photo.jpg",       // optional
-  "source": { "name": "Author · Site", "url": "https://…" },  // optional
+  "description": "…",                    // shown on the card
+  "image": "https://…",                 // optional; falls back to a lettered tile
+  "source": { "name": "…", "url": "…" },// optional
   "cuisine": "Italian",                  // optional
-  "tags": ["pasta", "quick"],
-  "prepTime": 2, "cookTime": 18, "totalTime": 20,  // minutes, optional
-  "servings": 2,                         // the base the amounts are written for
-  "servingsNoun": "people",              // optional, defaults to "servings"
+  "tags": ["pasta", "quick"],            // free-text chips + search
+  "diets": [],                           // diets satisfied AS WRITTEN (see below)
+  "prepTime": 2, "cookTime": 18, "totalTime": 20, // minutes, optional
+  "servings": 2,                         // base number the amounts are written for
+  "servingsNoun": "people",              // optional (default "servings")
+
   "ingredients": [
-    { "amount": 150, "unit": "g", "item": "chorizo", "note": "cubed" },
-    { "amount": 1, "unit": "tsp", "item": "paprika" },
-    { "amount": null, "unit": "", "item": "Olive oil", "note": "for frying" }  // null = not scaled/shown
+    // id is needed for method tokens and variant swaps
+    { "id": "chorizo", "amount": 150, "unit": "g", "item": "chorizo", "note": "cubed" },
+    { "id": "oil", "amount": null, "unit": "", "item": "Olive oil", "note": "for frying" }
+    // amount:null → shown with no number and never scaled (e.g. "to taste")
   ],
+
+  // optional dietary modes — each lists which ingredients to swap
+  "variants": [
+    {
+      "id": "vegan",
+      "label": "Vegan",
+      "diets": ["vegan", "vegetarian", "dairy-free"], // diets this mode satisfies
+      "swaps": {
+        "chorizo": { "item": "vegan chorizo", "note": "soy or pea-based" },
+        "cream":   { "item": "oat cream" }             // amount/unit optional
+      }
+    }
+  ],
+
   "steps": [
-    { "text": "Fry the onion and garlic until soft.",
-      "timer": { "minutes": 5, "label": "Soften aromatics" } },  // timer optional
-    { "text": "Plate up and finish with parmesan." }
+    // {{id}} tokens become tappable chips that show the scaled quantity
+    { "text": "Fry the {{chorizo}} until it releases its oil.",
+      "timer": { "minutes": 5, "label": "Fry the chorizo" } },
+    { "text": "Serve." }                 // timer optional
   ],
-  "notes": ["Optional tips shown under the method."],            // optional
-  "nutrition": { "note": "per serving", "calories": "1106 kcal" } // optional
+
+  "notes": ["Shown under “Tips”."],       // optional
+  "nutrition": { "note": "…", "calories": "1106 kcal", "protein": "43 g", "carbs": "100 g", "fat": "58 g" }
 }
 ```
 
-- **Scaling:** every numeric `amount` multiplies by `servings ÷ base servings`. Use `"amount": null`
-  for things like "oil for frying" or "salt to taste" — they show without a number and never scale.
-- **Timers:** add a `timer` with `minutes` and/or `seconds` to any step to get a countdown with a
-  chime + vibration when it finishes. Omit it for steps that don't need timing.
+Notes on behaviour:
 
-## What's in here
-
-```
-index.html                 app shell + PWA wiring
-manifest.webmanifest       makes it installable
-sw.js                      service worker (offline cache)
-assets/styles.css          all styling
-assets/app.js              all behaviour (routing, scaling, timers)
-icons/                     app icons (regular + maskable)
-recipes/index.json         the list of recipe slugs to show
-recipes/chorizo-pasta.json the first recipe (use as a template)
-```
+- **Filtering.** A recipe matches a diet filter if the original *or* any variant satisfies it. If you filter by a diet and open a recipe, it opens in that mode. The ingredient filter (with / without) also considers variants, so “without chicken stock” can surface a recipe via its vegetarian variant.
+- **Units.** `g kg ml l` render tight (`150g`); `tsp tbsp cup clove pinch` etc. scale to nice fractions (½, ⅓, ¾…). Others get a space.
+- **Images.** Hotlinking the source image works but is fragile. To self‑host, drop a file in `images/` and set `"image": "images/your-file.jpg"`.
