@@ -6,6 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
+const APP_VERSION = "1.2.0";
 
 /* ---------- storage helpers (localStorage, safe) ---------- */
 const store = {
@@ -717,6 +718,7 @@ function openSettings() {
     el("button", { class: "chipbtn", onclick: (e) => { if (confirm("Clear all favourites?")) { store.set(FAV_KEY, []); e.target.textContent = "Cleared"; } } }, "Clear")));
 
   panel.append(el("p", { class: "nut-note" }, "Favourites, notes and appearance are stored on this device only."));
+  panel.append(el("p", { class: "nut-note", style: "margin-top:6px; font-family:var(--mono); letter-spacing:.04em;" }, `${SITE_NAME} v${APP_VERSION}`));
   setTimeout(paint, 0);
 }
 
