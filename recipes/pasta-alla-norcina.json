@@ -1,0 +1,44 @@
+{
+  "slug": "pasta-alla-norcina",
+  "title": "Pasta alla Norcina",
+  "subtitle": "Sausage, white wine & cream \u00b7 about 30 minutes",
+  "description": "A rich Umbrian pasta with browned Italian sausage, white wine and double cream, finished with pecorino Romano.",
+  "source": { "name": "Home Cooking Sessions", "url": "" },
+  "cuisine": "Italian",
+  "course": "Dinner",
+  "tags": ["pasta", "sausage", "creamy", "dinner"],
+  "diets": [],
+  "prepTime": 5,
+  "cookTime": 25,
+  "totalTime": 30,
+  "servings": 4,
+  "servingsNoun": "people",
+  "ingredients": [
+    { "id": "oil", "amount": null, "unit": "", "item": "Extra virgin olive oil", "note": "for frying" },
+    { "id": "sausages", "amount": 500, "unit": "g", "item": "Italian sausages", "note": "e.g. Lincolnshire; casings removed" },
+    { "id": "pepper", "amount": null, "unit": "", "item": "Black pepper", "note": "to taste" },
+    { "id": "fennel", "amount": 1, "unit": "tsp", "item": "ground fennel seeds" },
+    { "id": "garlic", "amount": 2, "unit": "cloves", "item": "garlic", "note": "sliced" },
+    { "id": "wine", "amount": 300, "unit": "ml", "item": "white wine" },
+    { "id": "cream", "amount": 270, "unit": "ml", "item": "double cream" },
+    { "id": "pecorino", "amount": 100, "unit": "g", "item": "pecorino Romano", "note": "grated, plus extra to serve" },
+    { "id": "pasta", "amount": 400, "unit": "g", "item": "dried pasta", "note": "e.g. rigatoni or penne" },
+    { "id": "salt", "amount": null, "unit": "", "item": "Salt", "note": "for the pasta water" }
+  ],
+  "variants": [],
+  "steps": [
+    { "text": "Remove the casings from the {{sausages}} and break the meat apart. Add to a cold pan with a little {{oil}} and set to medium-high. Brown until crispy and golden with the fat rendered.", "timer": { "minutes": 8, "label": "Brown the sausage" } },
+    { "text": "Crack in {{pepper}}, then add the {{fennel}} and {{garlic}}. Cook until fragrant.", "timer": { "minutes": 2, "label": "Cook the aromatics" } },
+    { "text": "Pour in the {{wine}} and scrape the base of the pan to lift the caramelised bits. Reduce until almost gone." },
+    { "text": "Add the {{cream}} and lower to a gentle bubbling simmer." },
+    { "text": "Cook the {{pasta}} in boiling water salted with {{salt}} until al dente.", "timer": { "minutes": 10, "label": "Cook the pasta" } },
+    { "text": "Taste the sauce and adjust seasoning. Add the pasta with a ladle or two of pasta water and let it finish cooking in the sauce." },
+    { "text": "Lower the heat, sprinkle over the {{pecorino}} with a splash more pasta water, and mix vigorously until melted and creamy. Loosen with more pasta water or tighten with more cheese as needed." },
+    { "text": "Plate up and top with extra black pepper and pecorino Romano." }
+  ],
+  "notes": [
+    "The original didn't specify a pasta amount \u2014 100g dried pasta per person is used here.",
+    "Save a mug of starchy pasta water before draining; it's what pulls the sauce together.",
+    "If your sausages are already well seasoned, you can skip the added fennel."
+  ]
+}
