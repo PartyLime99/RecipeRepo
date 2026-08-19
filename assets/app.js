@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -735,15 +735,60 @@ function modalShell(title) {
 
 function openNutrition(recipe) {
   const { panel } = modalShell("Nutrition");
+  panel.classList.add("modal__panel--wide");
   const n = recipe.nutrition || {};
+  if (Array.isArray(n.items) && n.items.length) renderNutriTable(panel, n);
+  else renderNutriLegacy(panel, n);
+}
+
+const capFirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+function fmtNut(v, unit) {
+  if (v == null || isNaN(v)) return "";
+  const num = Math.abs(v) >= 100 ? Math.round(v) : Math.round(v * 10) / 10;
+  return `${num}${unit || ""}`;
+}
+const riPct = (v, ri) => (ri && v != null ? Math.round((v / ri) * 100) + "%" : "");
+
+function renderNutriTable(panel, n) {
+  const items = n.items;
+  const hasPer100 = items.some((i) => i.per100g != null);
+
+  const headRow = el("tr", {}, el("th", {}, "Typical value"));
+  if (hasPer100) headRow.append(el("th", {}, "Per 100g"));
+  const servHdr = (n.servingLabel || "Per serving") + (n.servingSize ? ` (${n.servingSize})` : "");
+  headRow.append(el("th", {}, servHdr), el("th", {}, "%RI*"), el("th", {}, "RI*"));
+
+  const tbody = el("tbody", {});
+  items.forEach((it) => {
+    const tr = el("tr", { class: it.sub ? "sub" : "" });
+    tr.append(el("td", { class: it.sub ? "" : "rowlabel" }, it.label || ""));
+    if (hasPer100) tr.append(el("td", { class: "num" }, fmtNut(it.per100g, it.unit)));
+    tr.append(el("td", { class: "num" }, fmtNut(it.perServing, it.unit)));
+    tr.append(el("td", { class: "pct" }, riPct(it.perServing, it.ri)));
+    tr.append(el("td", { class: "num ri" }, fmtNut(it.ri, it.unit)));
+    tbody.append(tr);
+  });
+
+  panel.append(el("table", { class: "nutri" }, el("thead", {}, headRow), tbody));
+
+  const foot = el("div", { class: "nutri-foot" });
+  if (n.servingsPerRecipe) foot.append(`This recipe makes ${n.servingsPerRecipe} servings. `);
+  foot.append("*Reference intake of an average adult (8400 kJ / 2000 kcal).");
+  panel.append(foot);
+  panel.append(el("p", { class: "nutri-est" },
+    (n.note ? n.note + " " : "") + "These figures are an estimate, not a lab analysis."));
+}
+
+function renderNutriLegacy(panel, n) {
   const grid = el("div", { class: "nut-grid" });
   const order = ["calories", "protein", "carbs", "fat", "fibre", "sugar", "salt", "saturates"];
-  const keys = [...new Set([...order.filter(k => n[k] != null), ...Object.keys(n).filter(k => k !== "note")])];
+  const keys = [...new Set([...order.filter((k) => n[k] != null), ...Object.keys(n).filter((k) => k !== "note")])];
   keys.forEach((k) => grid.append(el("div", { class: "nut-cell" },
-    el("div", { class: "k" }, k.charAt(0).toUpperCase() + k.slice(1)),
+    el("div", { class: "k" }, capFirst(k)),
     el("div", { class: "v" }, String(n[k])))));
   panel.append(grid);
-  panel.append(el("p", { class: "nut-note" }, (n.note ? n.note + " " : "") + "Estimated per serving at the recipe's base servings. Values are approximate."));
+  panel.append(el("p", { class: "nutri-est" },
+    (n.note ? n.note + " " : "") + "These figures are an estimate, not a lab analysis."));
 }
 
 function openSettings() {

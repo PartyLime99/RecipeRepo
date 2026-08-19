@@ -63,5 +63,20 @@
     "Roughly 100g of dried pasta per person is a good portion guide.",
     "Leftovers keep 2\u20133 days in the fridge; reheat gently with a splash of milk or water to loosen the sauce."
   ],
-  "nutrition": { "note": "Based on the original version.", "calories": "1106 kcal", "protein": "43 g", "carbs": "100 g", "fat": "58 g" }
+  "nutrition": {
+    "note": "Based on the original (non-substituted) recipe.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 2,
+    "items": [
+      { "label": "Energy", "unit": "kJ", "perServing": 4628, "ri": 8400 },
+      { "label": "", "unit": "kcal", "perServing": 1106, "ri": 2000 },
+      { "label": "Fat", "unit": "g", "perServing": 58, "ri": 70 },
+      { "label": "of which saturates", "unit": "g", "perServing": 24, "ri": 20, "sub": true },
+      { "label": "Carbohydrate", "unit": "g", "perServing": 100, "ri": 260 },
+      { "label": "of which sugars", "unit": "g", "perServing": 9, "ri": 90, "sub": true },
+      { "label": "Fibre", "unit": "g", "perServing": 6 },
+      { "label": "Protein", "unit": "g", "perServing": 43, "ri": 50 },
+      { "label": "Salt", "unit": "g", "perServing": 3.5, "ri": 6 }
+    ]
+  }
 }
