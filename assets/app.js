@@ -162,6 +162,7 @@ window.addEventListener("DOMContentLoaded", route);
 function route() {
   stopAllTimers();
   closePopovers();
+  if (cleanupScroll) { cleanupScroll(); cleanupScroll = null; }
   const hash = location.hash.replace(/^#\/?/, "");
   const parts = hash.split("/");
   if (parts[0] === "r" && parts[1]) {
@@ -378,7 +379,7 @@ function openIngredientFilter(anchor, controls, grid) {
 /* ============================================================
    RECIPE PAGE
    ============================================================ */
-let scrollHandler = null;
+let cleanupScroll = null;
 
 async function renderRecipePage(slug, initialModeId) {
   clear(view);
@@ -468,13 +469,15 @@ async function renderRecipePage(slug, initialModeId) {
   if (r.source && r.source.url) meta.append(el("span", { class: "meta__item meta__src" }, "Source ",
     el("a", { href: r.source.url, target: "_blank", rel: "noopener" }, r.source.name || "original")));
 
+  const collapsible = el("div", { class: "recipe__collapsible" },
+    r.subtitle ? el("p", { class: "recipe__subtitle" }, r.subtitle) : null, meta);
   const top = el("div", { class: "recipe__top" },
     el("div", { class: "recipe__topinner" },
       el("a", { class: "backlink", href: "#/" }, el("span", { html: ICON.back }), "All recipes"),
       el("div", { class: "recipe__headrow" },
         el("div", { class: "recipe__heading" },
           el("h1", { class: "recipe__title" }, r.title),
-          r.subtitle ? el("p", { class: "recipe__subtitle" }, r.subtitle) : null, meta),
+          collapsible),
         actions)));
 
   /* ---- panes ---- */
@@ -512,15 +515,47 @@ async function renderRecipePage(slug, initialModeId) {
   rerenderCook();
   setServings(state.servings);
 
-  /* ---- collapse-on-scroll wiring ---- */
-  const onScroll = () => {
-    const y = wide() ? Math.max(methodBody.scrollTop, ingBody.scrollTop) : (window.scrollY || document.documentElement.scrollTop || 0);
-    page.classList.toggle("collapsed", y > 30);
+  /* ---- smooth collapse-on-scroll (interpolated, not a jump) ---- */
+  if (cleanupScroll) { cleanupScroll(); cleanupScroll = null; }
+  const RANGE = 96;         // px of scroll over which the header fully collapses
+  let natural = 0, lastT = 0, ticking = false;
+  const measure = () => {
+    const prev = collapsible.style.height;
+    collapsible.style.height = "auto";
+    natural = collapsible.scrollHeight || 0;
+    collapsible.style.height = prev || (natural + "px");
   };
-  scrollHandler = onScroll;
+  const apply = (t) => {
+    lastT = t;
+    page.style.setProperty("--collapse", t.toFixed(3));
+    collapsible.style.height = (natural * (1 - t)) + "px";
+    collapsible.style.opacity = String(1 - t);
+    collapsible.style.pointerEvents = t > 0.6 ? "none" : "";
+  };
+  const readY = () => wide()
+    ? Math.max(methodBody.scrollTop || 0, ingBody.scrollTop || 0)
+    : (window.scrollY || document.documentElement.scrollTop || 0);
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      ticking = false;
+      apply(Math.max(0, Math.min(1, readY() / RANGE)));
+    });
+  };
+  const onResize = () => { measure(); apply(lastT); };
+
   methodBody.addEventListener("scroll", onScroll, { passive: true });
   ingBody.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onResize);
+  cleanupScroll = () => {
+    window.removeEventListener("scroll", onScroll);
+    window.removeEventListener("resize", onResize);
+  };
+
+  // measure after layout settles, then set initial state
+  requestAnimationFrame(() => { measure(); apply(0); });
 }
 
 /* ---------- ingredients (re-rendered on scale/mode) ---------- */

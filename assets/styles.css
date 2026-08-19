@@ -209,14 +209,16 @@ html[data-theme="dark"] .card__time { color: var(--green-text); }
    ============================================================ */
 .recipe { display: flex; flex-direction: column; }
 
-.recipe__top { border-bottom: 2px solid var(--line); background: var(--paper); transition: padding .2s ease; }
-.recipe__topinner { max-width: var(--maxw); margin: 0 auto; padding: 14px clamp(16px, 4vw, 40px) 16px; display: grid; gap: 12px; }
+.recipe { --collapse: 0; --title-max: 40px; --title-min: 26px; }
+.recipe__top { border-bottom: 2px solid var(--line); background: var(--paper); }
+.recipe__topinner { max-width: var(--maxw); margin: 0 auto; padding: calc(14px - 6px * var(--collapse)) clamp(16px, 4vw, 40px) calc(16px - 6px * var(--collapse)); display: grid; gap: calc(12px - 4px * var(--collapse)); }
+.recipe__collapsible { overflow: hidden; will-change: height, opacity; }
 .backlink { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; color: var(--green-text); font-weight: 600; font-size: 14px; width: max-content; }
 .backlink:hover { color: var(--paprika); }
 
 .recipe__headrow { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 24px; justify-content: space-between; }
 .recipe__heading { min-width: 0; }
-.recipe__title { font-family: var(--display); font-weight: 800; font-size: clamp(24px, 4vw, 40px); line-height: 1.03; letter-spacing: -.02em; margin: 0 0 6px; transition: font-size .2s ease; }
+.recipe__title { font-family: var(--display); font-weight: 800; font-size: calc(var(--title-max) - (var(--title-max) - var(--title-min)) * var(--collapse)); line-height: 1.03; letter-spacing: -.02em; margin: 0 0 6px; }
 .recipe__subtitle { margin: 0; color: var(--ink-2); font-size: 15px; }
 .meta { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-top: 10px; }
 .meta__item { display: inline-flex; align-items: baseline; gap: 6px; font-size: 14px; color: var(--ink-2); }
@@ -250,12 +252,8 @@ html[data-theme="dark"] .scaler__btn { color: #0f1a0d; }
 .mode-btn.on { background: var(--green); color: #fff; }
 html[data-theme="dark"] .mode-btn.on { color: #0f1a0d; }
 
-/* collapsed-on-scroll */
-.recipe.collapsed .recipe__subtitle,
-.recipe.collapsed .meta { display: none; }
-.recipe.collapsed .recipe__title { font-size: clamp(20px, 3vw, 26px); margin-bottom: 0; }
-.recipe.collapsed .recipe__topinner { padding-top: 8px; padding-bottom: 10px; gap: 8px; }
-.recipe.collapsed .backlink { font-size: 13px; }
+/* collapse-on-scroll is driven smoothly by --collapse (set in JS) */
+@media (max-width: 720px) { .recipe { --title-max: 30px; --title-min: 22px; } }
 
 /* ---------- the two-pane cook area ---------- */
 .cook { max-width: var(--maxw); margin: 0 auto; width: 100%; padding: 0 clamp(16px, 4vw, 40px); display: flex; flex-direction: column; gap: 8px; }
