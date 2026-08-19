@@ -6,7 +6,39 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.2.0";
+const APP_VERSION = "1.3.0";
+
+/* Recipe discovery.
+   On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
+   can just drop a .json file in and it appears — no index to edit. Falls back
+   to a static recipes/index.json (for local testing / offline / private repos).
+   To force a specific repo, set REPO_OVERRIDE = { owner, repo }. */
+const REPO_OVERRIDE = null;
+const SLUGS_CACHE_KEY = "mise:slugs";
+
+function detectRepo() {
+  if (REPO_OVERRIDE) return REPO_OVERRIDE;
+  try {
+    const host = location.hostname;               // e.g. partylime99.github.io
+    if (!/\.github\.io$/i.test(host)) return null; // not a Pages host
+    const owner = host.split(".")[0];
+    const seg = location.pathname.split("/").filter(Boolean)[0];
+    const repo = seg || `${owner}.github.io`;      // project page vs user page
+    return { owner, repo };
+  } catch (e) { return null; }
+}
+
+async function listRecipesViaGitHub(repo) {
+  const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/contents/${RECIPES_DIR}`;
+  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+  if (!res.ok) throw new Error(`github ${res.status}`);
+  const items = await res.json();
+  if (!Array.isArray(items)) throw new Error("github: unexpected response");
+  return items
+    .filter((f) => f.type === "file" && /\.json$/i.test(f.name) && f.name.toLowerCase() !== "index.json")
+    .map((f) => f.name.replace(/\.json$/i, ""))
+    .sort();
+}
 
 /* ---------- storage helpers (localStorage, safe) ---------- */
 const store = {
@@ -142,9 +174,26 @@ function ingredientItemsForMode(mode) {
 
 /* ---------- data loading ---------- */
 async function loadManifest() {
-  const res = await fetch(`${RECIPES_DIR}/index.json`, { cache: "no-cache" });
-  if (!res.ok) throw new Error(`index.json ${res.status}`);
-  return res.json();
+  // 1) Auto-discover on GitHub Pages — just drop files in, no index to edit.
+  const repo = detectRepo();
+  if (repo) {
+    try {
+      const slugs = await listRecipesViaGitHub(repo);
+      if (slugs && slugs.length) { store.set(SLUGS_CACHE_KEY, slugs); return slugs; }
+    } catch (e) { /* rate-limited / private / offline — fall through */ }
+  }
+  // 2) Static manifest fallback (local testing, offline first load, private repos).
+  try {
+    const res = await fetch(`${RECIPES_DIR}/index.json`, { cache: "no-cache" });
+    if (res.ok) {
+      const slugs = await res.json();
+      if (Array.isArray(slugs) && slugs.length) { store.set(SLUGS_CACHE_KEY, slugs); return slugs; }
+    }
+  } catch (e) { /* fall through */ }
+  // 3) Last known list from a previous visit (keeps the installed app working offline).
+  const cached = store.get(SLUGS_CACHE_KEY, null);
+  if (cached && cached.length) return cached;
+  throw new Error("no recipe manifest available");
 }
 async function loadRecipe(slug) {
   const res = await fetch(`${RECIPES_DIR}/${slug}.json`, { cache: "no-cache" });
