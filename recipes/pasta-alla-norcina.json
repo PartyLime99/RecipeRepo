@@ -40,5 +40,14 @@
     "The original didn't specify a pasta amount \u2014 100g dried pasta per person is used here.",
     "Save a mug of starchy pasta water before draining; it's what pulls the sauce together.",
     "If your sausages are already well seasoned, you can skip the added fennel."
-  ]
+  ],
+  "nutrition": {
+    "note": "Approximate, per serving at 4 servings. Estimated from typical ingredient values \u2014 actual figures vary with the sausages, cream and pasta you use.",
+    "calories": "1160 kcal",
+    "protein": "36 g",
+    "carbs": "85 g",
+    "fat": "72 g",
+    "saturates": "35 g",
+    "salt": "3 g"
+  }
 }

@@ -28,7 +28,19 @@
     { "id": "salt", "amount": null, "unit": "", "item": "Salt", "note": "to taste" },
     { "id": "pepper", "amount": null, "unit": "", "item": "Black pepper", "note": "to taste" }
   ],
-  "variants": [],
+  "variants": [
+    {
+      "id": "vegetarian",
+      "label": "Vegetarian",
+      "diets": ["vegetarian"],
+      "swaps": {
+        "pancetta": { "item": "cremini mushrooms", "note": "finely diced; fry until deeply browned and crisp-edged", "amount": 200, "unit": "g" },
+        "broth": { "item": "mushroom broth", "note": "or vegetable broth" },
+        "parmesan": { "item": "vegetarian Italian-style hard cheese", "note": "grated; parmesan itself uses animal rennet" },
+        "gruyere": { "item": "vegetarian melting cheese", "note": "shredded; check the label \u2014 Gruy\u00e8re uses animal rennet" }
+      }
+    }
+  ],
   "steps": [
     { "text": "Heat the {{oil}} in a large, deep pan over medium heat. Add the {{onions}} with a pinch of {{salt}} and cook, stirring now and then, until deeply golden and jammy. Whenever a brown crust builds on the pan, add a splash of water and scrape it back in.", "timer": { "minutes": 40, "label": "Caramelize the onions" } },
     { "text": "Push the onions to one side, add the {{pancetta}} to the empty side and fry until crisp, then stir everything together. Add the {{garlic}} and cook for a minute until fragrant.", "timer": { "minutes": 6, "label": "Crisp the pancetta" } },
