@@ -1,0 +1,61 @@
+{
+  "slug": "creamy-baked-spinach-pasta",
+  "title": "Creamy Baked Spinach Pasta",
+  "subtitle": "Creamy spinach pasta, finished under a Parmesan crust",
+  "description": "Fusilli in a garlicky spinach cream sauce, topped with Parmesan and baked until golden.",
+  "source": { "name": "The Spruce Eats", "url": "https://www.thespruceeats.com/creamy-spinach-pasta-2216819" },
+  "cuisine": "Italian",
+  "course": "Dinner",
+  "tags": ["pasta", "spinach", "creamy", "baked", "vegetarian"],
+  "diets": [],
+  "prepTime": 5,
+  "cookTime": 30,
+  "totalTime": 35,
+  "servings": 4,
+  "servingsNoun": "servings",
+  "ingredients": [
+    { "id": "salt", "amount": 0.5, "unit": "tsp", "item": "fine sea salt", "note": "plus more for the pasta water" },
+    { "id": "pasta", "amount": 225, "unit": "g", "item": "fusilli", "note": "or any short pasta" },
+    { "id": "oil", "amount": 1, "unit": "tbsp", "item": "olive oil" },
+    { "id": "garlic", "amount": 3, "unit": "", "item": "garlic cloves", "note": "finely minced (2\u20133)" },
+    { "id": "spinach", "amount": 285, "unit": "g", "item": "spinach leaves", "note": "washed, stems removed" },
+    { "id": "cream", "amount": 120, "unit": "ml", "item": "heavy cream" },
+    { "id": "nutmeg", "amount": 0.25, "unit": "tsp", "item": "nutmeg", "note": "freshly grated, optional" },
+    { "id": "pepper", "amount": 0.25, "unit": "tsp", "item": "black pepper", "note": "freshly ground, optional" },
+    { "id": "parmesan", "amount": 75, "unit": "g", "item": "Parmesan", "note": "freshly grated" },
+    { "id": "parmesan-top", "amount": 30, "unit": "g", "item": "Parmesan", "note": "freshly grated, for topping" }
+  ],
+  "variants": [],
+  "steps": [
+    { "text": "Heat the oven to 200\u00b0C (400\u00b0F). Bring about 2 litres of salted water to a boil and cook the {{pasta}} to al dente per the packet, then drain and set aside.", "timer": { "minutes": 10, "label": "Cook the pasta" } },
+    { "text": "In a large skillet, warm the {{oil}} with the {{garlic}} until fragrant, about 1 minute.", "timer": { "minutes": 1, "label": "Soften the garlic" } },
+    { "text": "Add the {{spinach}} and the {{salt}}. Stir until it starts to wilt, then cover and cook until fully wilted.", "timer": { "minutes": 2, "label": "Wilt the spinach" } },
+    { "text": "Stir in the {{cream}} and bring to a simmer. Cover and cook, then stir in the {{nutmeg}} and {{pepper}} if using.", "timer": { "minutes": 2, "label": "Simmer the sauce" } },
+    { "text": "Add the drained {{pasta}} and stir to coat, breaking up any clumps of greens so they spread evenly. Cover and cook so the pasta drinks up some of the sauce.", "timer": { "minutes": 2, "label": "Combine" } },
+    { "text": "Stir in the {{parmesan}} until melted through and well mixed." },
+    { "text": "Tip into a baking dish (or keep it in the pan if oven-safe), scatter the {{parmesan-top}} over the top, and bake until melted and golden.", "timer": { "minutes": 15, "label": "Bake" }, "note": "200\u00b0C / 400\u00b0F \u2014 adjust to taste." },
+    { "text": "Serve hot, with extra Parmesan at the table." }
+  ],
+  "notes": [
+    "The source recipe doesn't bake \u2014 the Parmesan topping and 15-minute bake are our addition.",
+    "No bake temperature was specified, so this uses 200\u00b0C / 400\u00b0F. Go hotter for a browner crust or lower for a gentler melt.",
+    "Use an oven-safe skillet to skip transferring to a baking dish.",
+    "For a strictly vegetarian version, use a Parmesan made without animal rennet."
+  ],
+  "nutrition": {
+    "note": "Rough estimate for the baked version, per serving of four.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 4,
+    "items": [
+      { "label": "Energy", "unit": "kJ", "perServing": 1950, "ri": 8400 },
+      { "label": "", "unit": "kcal", "perServing": 465, "ri": 2000 },
+      { "label": "Fat", "unit": "g", "perServing": 23, "ri": 70 },
+      { "label": "of which saturates", "unit": "g", "perServing": 11, "ri": 20, "sub": true },
+      { "label": "Carbohydrate", "unit": "g", "perServing": 47, "ri": 260 },
+      { "label": "of which sugars", "unit": "g", "perServing": 1, "ri": 90, "sub": true },
+      { "label": "Fibre", "unit": "g", "perServing": 3 },
+      { "label": "Protein", "unit": "g", "perServing": 19, "ri": 50 },
+      { "label": "Salt", "unit": "g", "perServing": 1.5, "ri": 6 }
+    ]
+  }
+}
