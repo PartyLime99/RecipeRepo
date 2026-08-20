@@ -1,0 +1,69 @@
+{
+  "slug": "gochujang-buttered-udon",
+  "title": "Gochujang Buttered Udon",
+  "subtitle": "Straight-to-wok \u00b7 ready in 20 minutes",
+  "description": "Garlicky, buttery udon in a glossy brick-red gochujang sauce that's sweet, savoury and tangy, with fried mushrooms and crispy lardons folded through at the end.",
+  "source": { "name": "Eric Kim \u00b7 NYT Cooking", "url": "https://cooking.nytimes.com/recipes/1023840-gochujang-buttered-noodles" },
+  "cuisine": "Korean-inspired",
+  "course": "Dinner",
+  "tags": ["noodles", "udon", "gochujang", "lardons", "quick", "weeknight"],
+  "diets": [],
+  "prepTime": 5,
+  "cookTime": 15,
+  "totalTime": 20,
+  "servings": 4,
+  "ingredients": [
+    { "id": "udon", "amount": 600, "unit": "g", "item": "straight-to-wok udon noodles", "note": "or any udon" },
+    { "id": "butter-garlic", "amount": 57, "unit": "g", "item": "unsalted butter", "note": "for the garlic" },
+    { "id": "butter-finish", "amount": 28, "unit": "g", "item": "unsalted butter", "note": "to finish" },
+    { "id": "garlic", "amount": 12, "unit": "", "item": "garlic cloves", "note": "finely chopped" },
+    { "id": "gochujang", "amount": 70, "unit": "g", "item": "gochujang paste", "note": "paste, not sauce" },
+    { "id": "honey", "amount": 85, "unit": "g", "item": "honey" },
+    { "id": "vinegar", "amount": 60, "unit": "ml", "item": "sherry vinegar or rice vinegar" },
+    { "id": "oil", "amount": null, "unit": "", "item": "neutral oil", "note": "for frying" },
+    { "id": "mushrooms", "amount": 200, "unit": "g", "item": "mushrooms", "note": "sliced" },
+    { "id": "lardons", "amount": 150, "unit": "g", "item": "lardons", "note": "or diced smoked bacon" },
+    { "id": "salt-pepper", "amount": null, "unit": "", "item": "Salt and pepper", "note": "to taste" },
+    { "id": "water", "amount": null, "unit": "", "item": "water", "note": "for loosening the sauce" },
+    { "id": "scallions", "amount": null, "unit": "", "item": "scallions or cilantro", "note": "optional, to serve" }
+  ],
+  "variants": [
+    {
+      "id": "vegetarian",
+      "label": "Vegetarian",
+      "diets": ["vegetarian"],
+      "swaps": {
+        "lardons": { "item": "lardons", "note": "left out in the vegetarian version", "amount": null, "unit": "" }
+      }
+    }
+  ],
+  "steps": [
+    { "text": "Heat a little {{oil}} in a large pan over medium-high. Fry the {{mushrooms}} and {{lardons}} until golden and crisp. Season, then remove and set aside.", "timer": { "minutes": 6, "seconds": 0, "label": "Fry mushrooms & lardons" } },
+    { "text": "In the same pan, melt the {{butter-garlic}} over medium-low. Add the {{garlic}}, season generously with {{salt-pepper}}, and cook, stirring, until softened but not browned.", "timer": { "minutes": 2, "seconds": 0, "label": "Soften the garlic" } },
+    { "text": "Stir in the {{gochujang}}, {{honey}} and {{vinegar}}, and bring to a simmer over medium-high. Stir constantly until it reduces and turns glossy \u2014 a spatula dragged across the pan should leave a trail that holds for about 3 seconds. Remove from the heat.", "timer": { "minutes": 4, "seconds": 0, "label": "Reduce the sauce" } },
+    { "text": "Add the {{udon}} and the {{butter-finish}}, tossing to coat and heat through. Loosen with splashes of {{water}} until the sauce clings to the noodles.", "timer": { "minutes": 2, "seconds": 0, "label": "Toss the noodles" } },
+    { "text": "Fold the fried {{mushrooms}} and {{lardons}} back in. Taste and season with {{salt-pepper}}, top with {{scallions}}, and serve immediately." }
+  ],
+  "notes": [
+    "Straight-to-wok udon needs no boiling \u2014 it goes straight into the sauce. Any udon works; cook per its packet first if using dried or frozen.",
+    "For the vegetarian version, just leave the lardons out and fry the mushrooms on their own.",
+    "Buy plain gochujang paste, not gochujang sauce (which adds vinegar and sugar). Oil the inside of the measuring cup so the paste slips out cleanly.",
+    "No starchy pasta water here, so keep a little plain hot water beside the pan to emulsify and loosen the sauce."
+  ],
+  "nutrition": {
+    "note": "Rough estimate for the version WITH lardons. Without them (vegetarian), figure roughly 545 kcal and 25g fat per serving. Approximate, not a lab analysis.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 4,
+    "items": [
+      { "label": "Energy", "unit": "kJ", "perServing": 2900, "ri": 8400 },
+      { "label": "", "unit": "kcal", "perServing": 695, "ri": 2000 },
+      { "label": "Fat", "unit": "g", "perServing": 37, "ri": 70 },
+      { "label": "of which saturates", "unit": "g", "perServing": 18, "ri": 20, "sub": true },
+      { "label": "Carbohydrate", "unit": "g", "perServing": 66, "ri": 260 },
+      { "label": "of which sugars", "unit": "g", "perServing": 22, "ri": 90, "sub": true },
+      { "label": "Fibre", "unit": "g", "perServing": 4 },
+      { "label": "Protein", "unit": "g", "perServing": 15, "ri": 50 },
+      { "label": "Salt", "unit": "g", "perServing": 3, "ri": 6 }
+    ]
+  }
+}
