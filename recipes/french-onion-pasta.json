@@ -1,12 +1,21 @@
 {
   "slug": "french-onion-pasta",
   "title": "One-Pot French Onion Pasta",
-  "subtitle": "One pot \u00b7 torched cheese top",
+  "subtitle": "One pot · torched cheese top",
   "description": "Orecchiette cooked straight in beef broth with jammy caramelized onions and crispy pancetta, finished with cream, parmesan and a blistered cheese top.",
-  "source": { "name": "@zachs.foods \u00b7 Recipes Better Than Takeout Ep. 14", "url": "https://www.instagram.com/zachs.foods/" },
+  "source": {
+    "name": "@zachs.foods · Recipes Better Than Takeout Ep. 14",
+    "url": "https://www.instagram.com/zachs.foods/"
+  },
   "cuisine": "French-Italian",
   "course": "Dinner",
-  "tags": ["pasta", "one pot", "caramelized onion", "comfort food", "dinner"],
+  "tags": [
+    "pasta",
+    "one pot",
+    "caramelized onion",
+    "comfort food",
+    "dinner"
+  ],
   "diets": [],
   "prepTime": 10,
   "cookTime": 65,
@@ -14,44 +23,233 @@
   "servings": 4,
   "servingsNoun": "people",
   "ingredients": [
-    { "id": "onions", "amount": 3, "unit": "", "item": "large yellow onions", "note": "thinly sliced (about 900g)" },
-    { "id": "oil", "amount": 2, "unit": "tbsp", "item": "olive oil or butter" },
-    { "id": "pancetta", "amount": 115, "unit": "g", "item": "pancetta", "note": "diced (or bacon)" },
-    { "id": "garlic", "amount": 3, "unit": "", "item": "garlic cloves", "note": "minced" },
-    { "id": "wine", "amount": 80, "unit": "ml", "item": "dry white wine", "note": "or dry sherry" },
-    { "id": "pasta", "amount": 450, "unit": "g", "item": "orecchiette", "note": "dried" },
-    { "id": "broth", "amount": 950, "unit": "ml", "item": "beef broth" },
-    { "id": "cream", "amount": 180, "unit": "ml", "item": "heavy cream" },
-    { "id": "parmesan", "amount": 75, "unit": "g", "item": "parmesan", "note": "freshly grated" },
-    { "id": "gruyere", "amount": 150, "unit": "g", "item": "Gruy\u00e8re", "note": "shredded; or mozzarella/provolone blend" },
-    { "id": "thyme", "amount": 1, "unit": "tsp", "item": "fresh thyme", "note": "chopped, plus more to garnish" },
-    { "id": "salt", "amount": null, "unit": "", "item": "Salt", "note": "to taste" },
-    { "id": "pepper", "amount": null, "unit": "", "item": "Black pepper", "note": "to taste" }
+    {
+      "id": "onions",
+      "amount": 3,
+      "unit": "",
+      "item": "large yellow onions",
+      "note": "thinly sliced (about 900g)"
+    },
+    {
+      "id": "oil",
+      "amount": 2,
+      "unit": "tbsp",
+      "item": "olive oil or butter"
+    },
+    {
+      "id": "pancetta",
+      "amount": 115,
+      "unit": "g",
+      "item": "pancetta",
+      "note": "diced (or bacon)"
+    },
+    {
+      "id": "garlic",
+      "amount": 3,
+      "unit": "",
+      "item": "garlic cloves",
+      "note": "minced"
+    },
+    {
+      "id": "wine",
+      "amount": 80,
+      "unit": "ml",
+      "item": "dry white wine",
+      "note": "or dry sherry"
+    },
+    {
+      "id": "pasta",
+      "amount": 450,
+      "unit": "g",
+      "item": "orecchiette",
+      "note": "dried"
+    },
+    {
+      "id": "broth",
+      "amount": 950,
+      "unit": "ml",
+      "item": "beef broth"
+    },
+    {
+      "id": "cream",
+      "amount": 180,
+      "unit": "ml",
+      "item": "heavy cream"
+    },
+    {
+      "id": "parmesan",
+      "amount": 75,
+      "unit": "g",
+      "item": "parmesan",
+      "note": "freshly grated"
+    },
+    {
+      "id": "gruyere",
+      "amount": 150,
+      "unit": "g",
+      "item": "Gruyère",
+      "note": "shredded; or mozzarella/provolone blend"
+    },
+    {
+      "id": "thyme",
+      "amount": 1,
+      "unit": "tsp",
+      "item": "fresh thyme",
+      "note": "chopped, plus more to garnish"
+    },
+    {
+      "id": "salt",
+      "amount": null,
+      "unit": "",
+      "item": "Salt",
+      "note": "to taste"
+    },
+    {
+      "id": "pepper",
+      "amount": null,
+      "unit": "",
+      "item": "Black pepper",
+      "note": "to taste"
+    }
   ],
   "variants": [
     {
       "id": "vegetarian",
       "label": "Vegetarian",
-      "diets": ["vegetarian"],
+      "diets": [
+        "vegetarian"
+      ],
       "swaps": {
-        "pancetta": { "item": "cremini mushrooms", "note": "finely diced; fry until deeply browned and crisp-edged", "amount": 200, "unit": "g" },
-        "broth": { "item": "mushroom broth", "note": "or vegetable broth" },
-        "parmesan": { "item": "vegetarian Italian-style hard cheese", "note": "grated; parmesan itself uses animal rennet" },
-        "gruyere": { "item": "vegetarian melting cheese", "note": "shredded; check the label \u2014 Gruy\u00e8re uses animal rennet" }
+        "pancetta": {
+          "item": "cremini mushrooms",
+          "note": "finely diced; fry until deeply browned and crisp-edged",
+          "amount": 200,
+          "unit": "g"
+        },
+        "broth": {
+          "item": "mushroom broth",
+          "note": "or vegetable broth"
+        },
+        "parmesan": {
+          "item": "vegetarian Italian-style hard cheese",
+          "note": "grated; parmesan itself uses animal rennet"
+        },
+        "gruyere": {
+          "item": "vegetarian melting cheese",
+          "note": "shredded; check the label — Gruyère uses animal rennet"
+        }
       }
     }
   ],
   "steps": [
-    { "text": "Heat the {{oil}} in a large, deep pan over medium heat. Add the {{onions}} with a pinch of {{salt}} and cook, stirring now and then, until deeply golden and jammy. Whenever a brown crust builds on the pan, add a splash of water and scrape it back in.", "timer": { "minutes": 40, "label": "Caramelize the onions" } },
-    { "text": "Push the onions to one side, add the {{pancetta}} to the empty side and fry until crisp, then stir everything together. Add the {{garlic}} and cook for a minute until fragrant.", "timer": { "minutes": 6, "label": "Crisp the pancetta" } },
-    { "text": "Pour in the {{wine}}, scraping up any browned bits, and simmer until mostly evaporated.", "timer": { "minutes": 2, "label": "Deglaze" } },
-    { "text": "Add the {{pasta}}, {{broth}}, {{thyme}} and plenty of {{pepper}}. Simmer, stirring often so nothing sticks, until the pasta is al dente and the liquid is a glossy sauce. Top up with a little water if it dries out first.", "timer": { "minutes": 12, "label": "Cook the pasta" } },
-    { "text": "Turn the heat to low and stir in the {{cream}}, then the {{parmesan}} a handful at a time until melted and the sauce coats the pasta.", "timer": { "minutes": 3, "label": "Cream and parmesan" } },
-    { "text": "Scatter the {{gruyere}} over the top and cover briefly to melt, then blister it with a kitchen torch (or 2\u20133 minutes under a hot grill if the pan is oven-safe). Garnish with thyme and serve from the pan.", "timer": { "minutes": 3, "label": "Cheese and torch" } }
+    {
+      "text": "Heat the {{oil}} in a large, deep pan over medium heat. Add the {{onions}} with a pinch of {{salt}} and cook, stirring now and then, until deeply golden and jammy. Whenever a brown crust builds on the pan, add a splash of water and scrape it back in.",
+      "timer": {
+        "minutes": 40,
+        "label": "Caramelize the onions"
+      }
+    },
+    {
+      "text": "Push the onions to one side, add the {{pancetta}} to the empty side and fry until crisp, then stir everything together. Add the {{garlic}} and cook for a minute until fragrant.",
+      "timer": {
+        "minutes": 6,
+        "label": "Crisp the pancetta"
+      }
+    },
+    {
+      "text": "Pour in the {{wine}}, scraping up any browned bits, and simmer until mostly evaporated.",
+      "timer": {
+        "minutes": 2,
+        "label": "Deglaze"
+      }
+    },
+    {
+      "text": "Add the {{pasta}}, {{broth}}, {{thyme}} and plenty of {{pepper}}. Simmer, stirring often so nothing sticks, until the pasta is al dente and the liquid is a glossy sauce. Top up with a little water if it dries out first.",
+      "timer": {
+        "minutes": 12,
+        "label": "Cook the pasta"
+      }
+    },
+    {
+      "text": "Turn the heat to low and stir in the {{cream}}, then the {{parmesan}} a handful at a time until melted and the sauce coats the pasta.",
+      "timer": {
+        "minutes": 3,
+        "label": "Cream and parmesan"
+      }
+    },
+    {
+      "text": "Scatter the {{gruyere}} over the top and cover briefly to melt, then blister it with a kitchen torch (or 2–3 minutes under a hot grill if the pan is oven-safe). Garnish with thyme and serve from the pan.",
+      "timer": {
+        "minutes": 3,
+        "label": "Cheese and torch"
+      }
+    }
   ],
   "notes": [
-    "Quantities follow standard French onion pasta ratios \u2014 the source video doesn't show measurements, so adjust to taste.",
+    "Quantities follow standard French onion pasta ratios — the source video doesn't show measurements, so adjust to taste.",
     "Don't rush the onions; the deep caramelization is the whole flavor base.",
-    "Gruy\u00e8re is the classic French onion choice, but low-moisture mozzarella melts and torches beautifully too."
-  ]
+    "Gruyère is the classic French onion choice, but low-moisture mozzarella melts and torches beautifully too."
+  ],
+  "nutrition": {
+    "note": "Estimated per serving; the source video doesn't give measurements, so figures are approximate and vary with the cheeses and broth you use.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 4,
+    "items": [
+      {
+        "label": "Energy",
+        "unit": "kJ",
+        "perServing": 4519,
+        "ri": 8400
+      },
+      {
+        "label": "",
+        "unit": "kcal",
+        "perServing": 1080,
+        "ri": 2000
+      },
+      {
+        "label": "Fat",
+        "unit": "g",
+        "perServing": 53,
+        "ri": 70
+      },
+      {
+        "label": "of which saturates",
+        "unit": "g",
+        "perServing": 24,
+        "ri": 20,
+        "sub": true
+      },
+      {
+        "label": "Carbohydrate",
+        "unit": "g",
+        "perServing": 106,
+        "ri": 260
+      },
+      {
+        "label": "of which sugars",
+        "unit": "g",
+        "perServing": 11,
+        "ri": 90,
+        "sub": true
+      },
+      {
+        "label": "Fibre",
+        "unit": "g",
+        "perServing": 6
+      },
+      {
+        "label": "Protein",
+        "unit": "g",
+        "perServing": 40,
+        "ri": 50
+      },
+      {
+        "label": "Salt",
+        "unit": "g",
+        "perServing": 3,
+        "ri": 6
+      }
+    ]
+  }
 }
