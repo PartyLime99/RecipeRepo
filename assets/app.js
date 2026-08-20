@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.4.1";
+const APP_VERSION = "1.5.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -153,6 +153,7 @@ function recipeModes(recipe) {
     const ings = base.map((ing) => {
       const s = ing.id && swaps[ing.id];
       if (!s) return ing;
+      if (s.remove) return Object.assign({}, ing, { _removed: true });   // left out in this variant
       return Object.assign({}, ing, s, { _swapped: true, _original: ing.item });
     });
     modes.push({ id: v.id, label: v.label || dietLabel(v.id), diets: v.diets || [v.id], ingredients: ings });
@@ -169,7 +170,8 @@ function recipeDiets(recipe) {
   return [...set];
 }
 function ingredientItemsForMode(mode) {
-  return (mode.ingredients || []).map((i) => (i.item || "").toLowerCase());
+  // removed ingredients aren't part of this version (so "without X" filters match)
+  return (mode.ingredients || []).filter((i) => !i._removed).map((i) => (i.item || "").toLowerCase());
 }
 
 /* ---------- data loading ---------- */
@@ -608,6 +610,13 @@ async function renderRecipePage(slug, initialModeId) {
   requestAnimationFrame(() => { measure(); apply(0); });
 }
 
+/* treat empty / "null" / "undefined" note values as no note */
+const cleanNote = (n) => {
+  if (n == null) return "";
+  const s = String(n).trim();
+  return (s === "" || s.toLowerCase() === "null" || s.toLowerCase() === "undefined") ? "" : s;
+};
+
 /* ---------- ingredients (re-rendered on scale/mode) ---------- */
 function renderIngredients(listEl, mode, state) {
   clear(listEl);
@@ -617,16 +626,27 @@ function renderIngredients(listEl, mode, state) {
 
   (mode.ingredients || []).forEach((ing) => {
     if (ing.group && ing.group !== lastGroup) { lastGroup = ing.group; listEl.append(el("li", { class: "ing__group" }, ing.group)); }
-    const row = el("li", { class: "ing__row", role: "button", tabindex: "0" });
-    const toggle = () => row.classList.toggle("done");
-    row.addEventListener("click", toggle);
-    row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
-    row.append(
+
+    if (ing._removed) {
+      // still shown, struck out, so you can see it's deliberately left out of this version
+      listEl.append(el("li", { class: "ing__row removed", "aria-label": `${ing.item}, left out of this version` },
+        el("span", { class: "ing__check", "aria-hidden": "true" }),
+        el("span", { class: "ing__amount" }, "\u2014"),
+        el("span", { class: "ing__item" }, ing.item, el("span", { class: "ing__swap out" }, "left out")),
+        el("span", { class: "ing__note" }, `Not used in the ${mode.label} version`)));
+      return;
+    }
+
+    const note = cleanNote(ing.note);
+    const row = el("li", { class: "ing__row", role: "button", tabindex: "0" },
       el("span", { class: "ing__check", "aria-hidden": "true", html: ICON.check }),
       el("span", { class: "ing__amount" }, amountText(ing, factor) || "\u00A0"),
       el("span", { class: "ing__item" }, ing.item, ing._swapped ? el("span", { class: "ing__swap", title: `was ${ing._original}` }, "swap") : null),
-      ing.note ? el("span", { class: "ing__note" }, ing.note) : null
+      note ? el("span", { class: "ing__note" }, note) : null
     );
+    const toggle = () => row.classList.toggle("done");
+    row.addEventListener("click", toggle);
+    row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
     listEl.append(row);
   });
 
@@ -644,25 +664,37 @@ function renderSteps(listEl, recipe, mode, state) {
   const byId = {};
   (mode.ingredients || []).forEach((i) => { if (i.id) byId[i.id] = i; });
 
-  (recipe.steps || []).forEach((step, index) => {
+  let n = 0;
+  (recipe.steps || []).forEach((step) => {
+    // per-variant text override: textByVariant[<modeId>]; empty string / null => skip step in this variant
+    let text = step.text || step.instruction || "";
+    if (mode.id && step.textByVariant && Object.prototype.hasOwnProperty.call(step.textByVariant, mode.id)) {
+      text = step.textByVariant[mode.id];
+    }
+    if (text == null || String(text).trim() === "") return; // step dropped in this variant
+
+    n += 1;
     const body = el("div", { class: "step__body" });
-    body.append(renderStepText(step.text || step.instruction || "", byId, factor));
+    body.append(renderStepText(text, byId, factor));
     if (step.timer) {
       const seconds = (Number(step.timer.minutes) || 0) * 60 + (Number(step.timer.seconds) || 0);
-      if (seconds > 0) body.append(buildTimer(seconds, step.timer.label || `Step ${index + 1}`));
+      if (seconds > 0) body.append(buildTimer(seconds, step.timer.label || `Step ${n}`));
     }
-    listEl.append(el("li", { class: "step" }, el("span", { class: "step__num" }, String(index + 1)), body));
+    listEl.append(el("li", { class: "step" }, el("span", { class: "step__num" }, String(n)), body));
   });
 }
 
 function renderStepText(text, byId, factor) {
   const p = el("p", { class: "step__text" });
-  // split on {{id}} tokens
   const parts = String(text).split(/(\{\{[^}]+\}\})/g);
   parts.forEach((part) => {
     const m = part.match(/^\{\{([^}]+)\}\}$/);
     if (m) {
       const ing = byId[m[1].trim()];
+      if (ing && ing._removed) {
+        p.append(el("span", { class: "iref out", title: "left out of this version" }, ing.item));
+        return;
+      }
       if (ing) {
         const chip = el("button", { class: "iref", type: "button",
           onclick: (e) => showQtyPopover(e.currentTarget, ing, factor) }, ing.item);
@@ -680,10 +712,11 @@ function renderStepText(text, byId, factor) {
 function showQtyPopover(anchor, ing, factor) {
   closePopovers();
   const amt = amountText(ing, factor);
+  const note = cleanNote(ing.note);
   const pop = el("div", { class: "popover", "data-popover": "1" },
     amt ? el("div", { class: "pop-amt" }, amt) : el("div", { class: "pop-amt" }, "to taste"),
     el("div", { class: "pop-item" }, ing.item),
-    ing.note ? el("div", { class: "pop-note" }, ing.note) : null);
+    note ? el("div", { class: "pop-note" }, note) : null);
   document.body.append(pop);
   positionPopover(pop, anchor, true);
 }

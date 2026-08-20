@@ -278,6 +278,12 @@ html[data-theme="dark"] .ing__check { color: #0f1a0d; }
 .ing__amount { font-family: var(--mono); font-weight: 700; font-size: 15px; color: var(--paprika-2); white-space: nowrap; }
 .ing__item { font-size: 16px; }
 .ing__swap { font-family: var(--mono); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--green-text); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; margin-left: 8px; vertical-align: middle; }
+.ing__swap.out { color: var(--ink-2); border-color: var(--line); }
+.ing__row.removed { cursor: default; opacity: .6; }
+.ing__row.removed:hover { background: transparent; }
+.ing__row.removed .ing__amount, .ing__row.removed .ing__item { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--ink-2); }
+.ing__row.removed .ing__check { border-color: var(--line); }
+.iref.out { text-decoration: line-through; color: var(--ink-2); background: transparent; border-bottom: none; cursor: default; }
 .ing__note { grid-column: 2 / -1; font-size: 13.5px; color: var(--ink-2); }
 .ing__row.done .ing__item, .ing__row.done .ing__amount { text-decoration: line-through; opacity: .55; }
 .scaled-flag { font-family: var(--mono); font-size: 11px; color: var(--paprika); letter-spacing: .04em; margin-left: 8px; text-transform: none; }
