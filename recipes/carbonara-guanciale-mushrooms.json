@@ -1,0 +1,58 @@
+{
+  "slug": "carbonara-guanciale-mushrooms",
+  "title": "Carbonara with Guanciale and Mushrooms",
+  "subtitle": "Roman classic · ready in 25 minutes",
+  "description": "A traditional Roman carbonara built on rendered guanciale, egg yolks, and Pecorino, with earthy mushrooms folded in. No cream, no garlic.",
+  "cuisine": "Italian",
+  "course": "Dinner",
+  "tags": ["pasta", "carbonara", "guanciale", "quick", "dinner"],
+  "diets": [],
+  "prepTime": 10,
+  "cookTime": 15,
+  "totalTime": 25,
+  "servings": 4,
+  "servingsNoun": "servings",
+  "ingredients": [
+    { "id": "spaghetti", "amount": 400, "unit": "g", "item": "spaghetti", "note": "or rigatoni" },
+    { "id": "guanciale", "amount": 150, "unit": "g", "item": "guanciale", "note": "rind trimmed, cut into 1cm batons" },
+    { "id": "mushrooms", "amount": 250, "unit": "g", "item": "cremini mushrooms", "note": "sliced" },
+    { "id": "yolks", "amount": 6, "unit": "", "item": "egg yolks" },
+    { "id": "egg", "amount": 1, "unit": "", "item": "whole egg" },
+    { "id": "pecorino", "amount": 100, "unit": "g", "item": "Pecorino Romano", "note": "finely grated" },
+    { "id": "pepper", "amount": 2, "unit": "tsp", "item": "black pepper", "note": "freshly ground" },
+    { "id": "salt", "amount": 20, "unit": "g", "item": "salt", "note": "for the pasta water" }
+  ],
+  "variants": [],
+  "steps": [
+    { "text": "Bring a large pot of water to a boil and add the {{salt}}. Keep it at a rolling boil — you'll need the starchy water later.", "timer": { "minutes": 10, "label": "Boil the water" } },
+    { "text": "Whisk the {{yolks}} and {{egg}} with about three-quarters of the {{pecorino}} and most of the {{pepper}} into a thick, pale paste. Set aside." },
+    { "text": "Add the {{guanciale}} to a cold, large skillet and set over medium heat. Render slowly until the fat is liquid and the pieces are golden and crisp. Remove with a slotted spoon, leaving the fat behind.", "timer": { "minutes": 7, "label": "Render the guanciale" } },
+    { "text": "Raise the heat to medium-high and add the {{mushrooms}} to the rendered fat. Cook undisturbed for a minute, then stir occasionally until deeply browned and any liquid has evaporated. Turn off the heat and return the {{guanciale}} to the pan.", "timer": { "minutes": 7, "label": "Sauté the mushrooms" } },
+    { "text": "Cook the {{spaghetti}} until just shy of al dente. Reserve at least 250ml of pasta water before draining.", "timer": { "minutes": 9, "label": "Cook the pasta" } },
+    { "text": "Add the drained pasta to the off-heat skillet and toss to coat. Whisk 2–3 tablespoons of hot pasta water into the egg mixture to temper it, then pour it over the pasta." },
+    { "text": "Toss vigorously off the heat, adding splashes of reserved pasta water until the sauce turns glossy and clings. The residual warmth cooks the eggs into a creamy sauce — never return it to direct heat or it will scramble." },
+    { "text": "Plate immediately and top with the remaining {{pecorino}} and {{pepper}}. Serve at once." }
+  ],
+  "notes": [
+    "All the egg work happens off the heat. If the pan is too hot when the eggs go in, they'll scramble.",
+    "Trim the tough rind off the guanciale before cutting, but drop it into the pan while rendering for extra flavour, then discard it before the mushrooms go in.",
+    "No garlic and no cream — the guanciale fat and sharp Pecorino carry all the flavour.",
+    "Pecorino Romano is traditional and sharper than Parmesan. If it's too salty for you, do half Pecorino, half Parmigiano-Reggiano.",
+    "Don't add salt to the sauce — the guanciale and cheese are already salty."
+  ],
+  "nutrition": {
+    "note": "Rough estimate from the ingredients, not a lab analysis.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 4,
+    "items": [
+      { "label": "Energy", "unit": "kJ", "perServing": 3456, "ri": 8400 },
+      { "label": "", "unit": "kcal", "perServing": 826, "ri": 2000 },
+      { "label": "Fat", "unit": "g", "perServing": 41, "ri": 70 },
+      { "label": "of which saturates", "unit": "g", "perServing": 16, "ri": 20, "sub": true },
+      { "label": "Carbohydrate", "unit": "g", "perServing": 75, "ri": 260 },
+      { "label": "of which sugars", "unit": "g", "perServing": 3, "ri": 90, "sub": true },
+      { "label": "Protein", "unit": "g", "perServing": 30, "ri": 50 },
+      { "label": "Salt", "unit": "g", "perServing": 2.5, "ri": 6 }
+    ]
+  }
+}
