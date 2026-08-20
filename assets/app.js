@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "1.4.1";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -780,6 +780,25 @@ function renderNutriTable(panel, n) {
 }
 
 function renderNutriLegacy(panel, n) {
+  // Upgrade the old flat format to the label-style table so every recipe looks consistent.
+  const num = (v) => { const f = parseFloat(String(v)); return isNaN(f) ? null : f; };
+  const items = [];
+  const kcal = num(n.calories);
+  if (kcal != null) {
+    items.push({ label: "Energy", unit: "kJ", perServing: Math.round(kcal * 4.184), ri: 8400 });
+    items.push({ label: "", unit: "kcal", perServing: kcal, ri: 2000 });
+  }
+  if (num(n.fat) != null) items.push({ label: "Fat", unit: "g", perServing: num(n.fat), ri: 70 });
+  if (num(n.saturates) != null) items.push({ label: "of which saturates", unit: "g", perServing: num(n.saturates), ri: 20, sub: true });
+  if (num(n.carbs ?? n.carbohydrate) != null) items.push({ label: "Carbohydrate", unit: "g", perServing: num(n.carbs ?? n.carbohydrate), ri: 260 });
+  if (num(n.sugar ?? n.sugars) != null) items.push({ label: "of which sugars", unit: "g", perServing: num(n.sugar ?? n.sugars), ri: 90, sub: true });
+  if (num(n.fibre ?? n.fiber) != null) items.push({ label: "Fibre", unit: "g", perServing: num(n.fibre ?? n.fiber) });
+  if (num(n.protein) != null) items.push({ label: "Protein", unit: "g", perServing: num(n.protein), ri: 50 });
+  if (num(n.salt) != null) items.push({ label: "Salt", unit: "g", perServing: num(n.salt), ri: 6 });
+
+  if (items.length) { renderNutriTable(panel, { note: n.note, items }); return; }
+
+  // Truly unstructured — show whatever keys exist as a simple grid.
   const grid = el("div", { class: "nut-grid" });
   const order = ["calories", "protein", "carbs", "fat", "fibre", "sugar", "salt", "saturates"];
   const keys = [...new Set([...order.filter((k) => n[k] != null), ...Object.keys(n).filter((k) => k !== "note")])];
