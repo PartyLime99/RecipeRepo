@@ -22,10 +22,10 @@
   "variants": [],
   "steps": [
     { "text": "Soak the {{ham}} in plenty of cold water for 24 hours to draw out salt, changing the water once or twice. Drain and trim neatly.", "timer": { "minutes": 0, "label": "Soak (24 hours)" } },
-    { "text": "Heat the oven to gas mark 6 (200\u00b0C / 180\u00b0C fan). Mix the {{flour}} and {{water}} into a stiff paste, roll it out, and wrap the {{ham}} completely so it's sealed in." },
+    { "text": "Heat the oven to gas mark 6 (200\u00b0C / 180\u00b0C fan). Mix the {{flour}} and {{water}} into a stiff paste, roll it out, and wrap the {{ham}} completely so it's sealed in. Then wrap the whole thing in tin foil, over the top of the paste, to hold it together during baking." },
     { "text": "Bake in the middle of the oven. The timer is set for your joint \u2014 about 36 minutes per pound for hams up to 3 lb, or 30 minutes per pound between 3 and 6 lb.", "timer": { "label": "Bake the ham", "perWeight": { "brackets": [ { "upToKg": 1.36, "minutesPerKg": 79 }, { "upToKg": 2.72, "minutesPerKg": 66 } ] } } },
-    { "text": "Lift out and let it rest until cool enough to handle. Peel off the paste and the skin.", "timer": { "minutes": 15, "label": "Rest" } },
-    { "text": "Press {{breadcrumbs}} over the fat (or brush with your glaze) and, if you like, flash back in the hot oven for a few minutes to set. Slice and serve." }
+    { "text": "Lift out and let it rest until cool enough to handle. Unwrap and discard the foil, then peel off the paste (discard it too \u2014 it isn't for eating) and the skin.", "timer": { "minutes": 15, "label": "Rest" } },
+    { "text": "While the ham is still warm \u2014 not straight from the oven, but before it goes cold \u2014 press {{breadcrumbs}} over the fat (or brush with your glaze). This is the moment that matters: warm fat is soft and tacky so the crumbs stick, whereas cold fat has set firm and they'll just slide off. If you like, flash back in the hot oven for a few minutes to set. Slice and serve." }
   ],
   "notes": [
     "The 24-hour soak assumes a traditional salted/cured ham; for a mild supermarket gammon a few hours is plenty, or skip it and just simmer-then-bake.",
