@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.8.0";
+const APP_VERSION = "1.9.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -131,6 +131,7 @@ const ICON = {
   chevL:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
   chevR:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
   copy:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
+  chevD:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
 };
 
 /* diet labels */
@@ -295,7 +296,9 @@ function route() {
 /* ============================================================
    LIST PAGE
    ============================================================ */
-let LIST_STATE = { recipes: [], query: "", diets: new Set(), favOnly: false, inc: new Set(), exc: new Set() };
+let LIST_STATE = { recipes: [], query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set() };
+const emptyFilters = () => ({ recipes: LIST_STATE.recipes, query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set() });
+const anyFilterActive = () => LIST_STATE.query || LIST_STATE.cuisines.size || LIST_STATE.diets.size || LIST_STATE.favOnly || LIST_STATE.inc.size || LIST_STATE.exc.size;
 
 async function renderListPage() {
   clear(view);
@@ -345,41 +348,138 @@ function buildControls(controls, grid) {
       value: LIST_STATE.query,
       oninput: (e) => { LIST_STATE.query = e.target.value.trim().toLowerCase(); renderCards(grid); } })
   );
-
   const favBtn = el("button", { class: "pill fav", "aria-pressed": String(LIST_STATE.favOnly),
     onclick: () => { LIST_STATE.favOnly = !LIST_STATE.favOnly; buildControls(controls, grid); renderCards(grid); } },
     el("span", { html: LIST_STATE.favOnly ? ICON.starF : ICON.starO }), "Favourites");
-
   const row1 = el("div", { class: "controls__row" }, search, favBtn);
 
-  // diet chips (derived from all recipes)
-  const allDiets = [...new Set(LIST_STATE.recipes.flatMap(recipeDiets))].sort();
   const filterbar = el("div", { class: "filterbar" });
-  allDiets.forEach((d) => {
-    const on = LIST_STATE.diets.has(d);
-    filterbar.append(el("button", { class: "pill", "aria-pressed": String(on),
-      onclick: () => { on ? LIST_STATE.diets.delete(d) : LIST_STATE.diets.add(d); buildControls(controls, grid); renderCards(grid); } },
-      dietLabel(d)));
-  });
+  const clearBtn = el("button", { class: "filter-clear", hidden: !anyFilterActive(),
+    onclick: () => { closePopovers(); LIST_STATE = emptyFilters(); buildControls(controls, grid); renderCards(grid); } },
+    "Clear all");
+  const refreshClear = () => { clearBtn.hidden = !anyFilterActive(); };
+  search.querySelector("input").addEventListener("input", refreshClear);
 
-  const incN = LIST_STATE.inc.size, excN = LIST_STATE.exc.size;
-  const ingBtn = el("button", { class: "pill" + ((incN + excN) ? " active" : ""), "data-poptrigger": "1",
-    onclick: (e) => openIngredientFilter(e.currentTarget, controls, grid) },
-    "Ingredients", (incN + excN) ? el("span", { class: "count" }, `${incN + excN}`) : null);
-  filterbar.append(ingBtn);
+  const cuisines = [...new Set(LIST_STATE.recipes.map(r => r.cuisine).filter(Boolean))].sort();
+  const allDiets = [...new Set(LIST_STATE.recipes.flatMap(recipeDiets))].sort();
+  const allIngredients = [...new Set(LIST_STATE.recipes.flatMap(r => (r.ingredients || []).map(i => (i.item || "").toLowerCase())))].filter(Boolean).sort();
 
-  if (LIST_STATE.diets.size || incN || excN || LIST_STATE.favOnly || LIST_STATE.query) {
-    filterbar.append(el("button", { class: "filter-clear",
-      onclick: () => { LIST_STATE = { recipes: LIST_STATE.recipes, query: "", diets: new Set(), favOnly: false, inc: new Set(), exc: new Set() }; buildControls(controls, grid); renderCards(grid); } },
-      "Clear all"));
+  // 1) Cuisine
+  if (cuisines.length) {
+    const btn = dropdownButton("Cuisine", () => LIST_STATE.cuisines.size);
+    btn.addEventListener("click", () => toggleMenu(btn, "cuisine", () => openFilterMenu(btn, {
+      id: "cuisine", title: "Cuisine", kind: "check", grid,
+      searchable: cuisines.length > 10,
+      items: cuisines.map((c) => ({ value: c, label: c })),
+      stateOf: (v) => LIST_STATE.cuisines.has(v),
+      onToggle: (v) => { LIST_STATE.cuisines.has(v) ? LIST_STATE.cuisines.delete(v) : LIST_STATE.cuisines.add(v); },
+      onChange: () => { btn._refresh(); refreshClear(); },
+      onClear: () => { LIST_STATE.cuisines.clear(); },
+    })));
+    filterbar.append(btn);
   }
 
+  // 2) Dietary
+  if (allDiets.length) {
+    const btn = dropdownButton("Dietary", () => LIST_STATE.diets.size);
+    btn.addEventListener("click", () => toggleMenu(btn, "dietary", () => openFilterMenu(btn, {
+      id: "dietary", title: "Dietary", kind: "check", grid,
+      items: allDiets.map((d) => ({ value: d, label: dietLabel(d) })),
+      stateOf: (v) => LIST_STATE.diets.has(v),
+      onToggle: (v) => { LIST_STATE.diets.has(v) ? LIST_STATE.diets.delete(v) : LIST_STATE.diets.add(v); },
+      onChange: () => { btn._refresh(); refreshClear(); },
+      onClear: () => { LIST_STATE.diets.clear(); },
+    })));
+    filterbar.append(btn);
+  }
+
+  // 3) Ingredients (tri-state: with / without / off)
+  if (allIngredients.length) {
+    const btn = dropdownButton("Ingredients", () => LIST_STATE.inc.size + LIST_STATE.exc.size);
+    btn.addEventListener("click", () => toggleMenu(btn, "ingredients", () => openFilterMenu(btn, {
+      id: "ingredients", title: "Ingredients", kind: "tri", grid, searchable: true,
+      hint: "Tap to cycle: with \u2192 without \u2192 off",
+      items: allIngredients.map((it) => ({ value: it, label: it })),
+      stateOf: (v) => LIST_STATE.inc.has(v) ? "inc" : LIST_STATE.exc.has(v) ? "exc" : "",
+      onToggle: (v) => {
+        if (LIST_STATE.inc.has(v)) { LIST_STATE.inc.delete(v); LIST_STATE.exc.add(v); }
+        else if (LIST_STATE.exc.has(v)) { LIST_STATE.exc.delete(v); }
+        else { LIST_STATE.inc.add(v); }
+      },
+      onChange: () => { btn._refresh(); refreshClear(); },
+      onClear: () => { LIST_STATE.inc.clear(); LIST_STATE.exc.clear(); },
+    })));
+    filterbar.append(btn);
+  }
+
+  filterbar.append(clearBtn);
   controls.append(row1, filterbar);
+}
+
+function dropdownButton(label, countFn) {
+  const count = el("span", { class: "count" });
+  const btn = el("button", { class: "pill dropdown-btn", "data-poptrigger": "1" },
+    label, count, el("span", { class: "chev", html: ICON.chevD }));
+  btn._refresh = () => { const n = countFn(); count.textContent = n ? String(n) : ""; btn.classList.toggle("active", n > 0); };
+  btn._refresh();
+  return btn;
+}
+// open this button's menu, or close it if it's already the open one (toggle)
+function toggleMenu(btn, id, openFn) {
+  const alreadyOpen = document.querySelector(`.menu[data-menu="${id}"]`);
+  closePopovers();
+  if (!alreadyOpen) openFn();
+}
+
+function openFilterMenu(anchor, opts) {
+  let q = "";
+  const listEl = el("div", { class: "menu__list" });
+  const makeRow = (it) => {
+    const st = opts.stateOf(it.value);
+    const indicator = opts.kind === "tri"
+      ? el("span", { class: "menu__state" }, st === "inc" ? "WITH" : st === "exc" ? "WITHOUT" : "\u00B7")
+      : el("span", { class: "menu__box", html: ICON.check });
+    const row = el("div", { class: "menu__row", role: "button", tabindex: "0" },
+      el("span", { class: "menu__label" }, it.label), indicator);
+    const paint = () => {
+      const s = opts.stateOf(it.value);
+      if (opts.kind === "tri") {
+        row.classList.toggle("inc", s === "inc");
+        row.classList.toggle("exc", s === "exc");
+        indicator.textContent = s === "inc" ? "WITH" : s === "exc" ? "WITHOUT" : "\u00B7";
+      } else {
+        row.classList.toggle("on", !!s);
+      }
+    };
+    paint();
+    const act = () => { opts.onToggle(it.value); paint(); renderCards(opts.grid); opts.onChange && opts.onChange(); };
+    row.addEventListener("click", act);
+    row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); } });
+    return row;
+  };
+  const renderRows = () => {
+    clear(listEl);
+    const items = opts.items.filter((it) => !q || it.label.toLowerCase().includes(q)).slice(0, 300);
+    if (!items.length) { listEl.append(el("div", { class: "menu__empty" }, "No matches")); return; }
+    items.forEach((it) => listEl.append(makeRow(it)));
+  };
+
+  const clearLink = el("button", { onclick: () => { opts.onClear && opts.onClear(); renderRows(); renderCards(opts.grid); opts.onChange && opts.onChange(); } }, "Clear");
+  const pop = el("div", { class: "menu", "data-popover": "1", "data-menu": opts.id },
+    el("div", { class: "menu__title" }, el("span", {}, opts.title), clearLink),
+    opts.hint ? el("p", { class: "menu__hint" }, opts.hint) : null,
+    opts.searchable ? el("div", { class: "menu__search" },
+      el("input", { type: "search", placeholder: `Find\u2026`, oninput: (e) => { q = e.target.value.trim().toLowerCase(); renderRows(); } })) : null,
+    listEl);
+  renderRows();
+  document.body.append(pop);
+  positionPopover(pop, anchor);
 }
 
 /* choose the best matching mode for a recipe under current filters.
    returns { ok, modeId } — ok=false means it doesn't match. */
 function matchRecipe(recipe) {
+  if (LIST_STATE.cuisines.size && !LIST_STATE.cuisines.has(recipe.cuisine || "")) return { ok: false };
   const modes = recipeModes(recipe);
   const diets = [...LIST_STATE.diets];
   const inc = [...LIST_STATE.inc];
@@ -484,42 +584,6 @@ function placeholder(title, slug) {
 const truncate = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + "\u2026" : s;
 
 /* ---------- ingredient include/exclude filter popover ---------- */
-function openIngredientFilter(anchor, controls, grid) {
-  closePopovers();
-  const allItems = [...new Set(LIST_STATE.recipes.flatMap(r => (r.ingredients || []).map(i => (i.item || "").toLowerCase())))].filter(Boolean).sort();
-  let q = "";
-
-  const listEl = el("div", { class: "ingfilter__list" });
-  const renderRows = () => {
-    clear(listEl);
-    allItems.filter(it => it.includes(q)).slice(0, 200).forEach((it) => {
-      const state = LIST_STATE.inc.has(it) ? "inc" : LIST_STATE.exc.has(it) ? "exc" : "";
-      const row = el("div", { class: "ingfilter__row" + (state ? " " + state : ""),
-        onclick: () => {
-          // cycle: none -> include -> exclude -> none
-          if (LIST_STATE.inc.has(it)) { LIST_STATE.inc.delete(it); LIST_STATE.exc.add(it); }
-          else if (LIST_STATE.exc.has(it)) { LIST_STATE.exc.delete(it); }
-          else { LIST_STATE.inc.add(it); }
-          renderRows(); renderCards(grid); buildControls(controls, grid);
-        } },
-        el("span", {}, it),
-        el("span", { class: "ingfilter__state" }, LIST_STATE.inc.has(it) ? "WITH" : LIST_STATE.exc.has(it) ? "WITHOUT" : "\u00B7"));
-      listEl.append(row);
-    });
-  };
-
-  const pop = el("div", { class: "ingfilter", "data-popover": "1" },
-    el("h4", {}, "Filter by ingredient"),
-    el("p", { class: "hint" }, "Tap to cycle: with \u2192 without \u2192 off."),
-    el("div", { class: "ingfilter__search" },
-      el("input", { type: "search", placeholder: "Find an ingredient\u2026", oninput: (e) => { q = e.target.value.trim().toLowerCase(); renderRows(); } })),
-    listEl
-  );
-  renderRows();
-  document.body.append(pop);
-  positionPopover(pop, anchor);
-}
-
 /* ============================================================
    RECIPE PAGE
    ============================================================ */
@@ -1043,6 +1107,7 @@ function positionPopover(pop, anchor, compact) {
 function closePopovers() { document.querySelectorAll('[data-popover="1"]').forEach(p => p.remove()); }
 document.addEventListener("click", (e) => {
   if (!e.target.closest) return;
+  if (!e.target.isConnected) return;   // element removed during its own handler (in-UI re-render) — not an outside click
   const inPopover = e.target.closest('[data-popover="1"]');
   const isTrigger = e.target.closest(".iref") || e.target.closest("[data-poptrigger]");
   if (!inPopover && !isTrigger) closePopovers();
