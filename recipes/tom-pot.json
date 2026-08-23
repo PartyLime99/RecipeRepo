@@ -13,6 +13,7 @@
   "totalTime": 50,
   "servings": 4,
   "servingsNoun": "servings",
+  "image": "images/baked-ham.jpg",
   "ingredients": [
     { "id": "oil", "amount": 1, "unit": "tbsp", "item": "olive oil" },
     { "id": "onion", "amount": 1, "unit": "", "item": "onion", "note": "diced" },
