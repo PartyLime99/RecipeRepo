@@ -13,7 +13,6 @@
   "totalTime": 50,
   "servings": 4,
   "servingsNoun": "servings",
-  "image": "images/tom-pot.jpg",
   "ingredients": [
     { "id": "oil", "amount": 1, "unit": "tbsp", "item": "olive oil" },
     { "id": "onion", "amount": 1, "unit": "", "item": "onion", "note": "diced" },
@@ -33,13 +32,41 @@
     { "id": "fusilli", "amount": 500, "unit": "g", "item": "fusilli" },
     { "id": "parmesan", "amount": null, "unit": "", "item": "parmesan", "note": "to top" }
   ],
-  "variants": [],
+  "variants": [
+    {
+      "id": "vegetarian",
+      "label": "Vegetarian",
+      "diets": ["vegetarian"],
+      "swaps": {
+        "chorizo": { "remove": true },
+        "parmesan": { "item": "vegetarian hard cheese", "note": "to top; use a rennet-free parmesan-style cheese" }
+      }
+    },
+    {
+      "id": "vegan",
+      "label": "Vegan",
+      "diets": ["vegan", "vegetarian", "dairy-free"],
+      "swaps": {
+        "chorizo": { "remove": true },
+        "parmesan": { "item": "vegan hard cheese", "note": "to top; a vegan parmesan-style alternative" }
+      }
+    },
+    {
+      "id": "gluten-free",
+      "label": "Gluten-free",
+      "diets": ["gluten-free"],
+      "swaps": {
+        "fusilli": { "item": "gluten-free fusilli" },
+        "stock-cube": { "note": "crumbled in dry; check it's certified gluten-free" }
+      }
+    }
+  ],
   "steps": [
     { "text": "Heat the {{oil}} in a large pot and fry the {{onion}} and {{garlic}} until softening.", "timer": { "minutes": 2, "label": "Soften onion & garlic" } },
     { "text": "Add the {{pepper}} and cook.", "timer": { "minutes": 3, "label": "Cook the pepper" } },
     { "text": "Add the {{courgette}} and {{aubergine}} and cook.", "timer": { "minutes": 5, "label": "Cook courgette & aubergine" } },
     { "text": "Add the {{mushrooms}} and cook.", "timer": { "minutes": 5, "label": "Cook the mushrooms" } },
-    { "text": "Add the {{chorizo}} and cook until it starts releasing its oil.", "timer": { "minutes": 2, "label": "Fry the chorizo" } },
+    { "text": "Add the {{chorizo}} and cook until it starts releasing its oil.", "textByVariant": { "vegetarian": "", "vegan": "" }, "timer": { "minutes": 2, "label": "Fry the chorizo" } },
     { "text": "Stir in the {{tomato-paste}} and {{harissa}}, mixing everything through well, and cook.", "timer": { "minutes": 2, "label": "Cook out paste & harissa" } },
     { "text": "Add the {{tomatoes}} along with the {{paprika}}, {{mixed-herbs}}, {{sumac}} and crumbled {{stock-cube}}. Stir and simmer.", "timer": { "minutes": 15, "label": "Simmer the sauce" } },
     { "text": "As soon as the tomatoes go in, add the {{fusilli}} to a pan of boiling water and cook to your liking.", "note": "Reserve a little pasta water before draining." },
