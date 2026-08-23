@@ -1,0 +1,70 @@
+{
+  "slug": "tom-pot",
+  "title": "Tom Pot",
+  "subtitle": "One pot \u00b7 smoky chorizo & veg pasta",
+  "description": "A hearty, smoky one-pot pasta loaded with chorizo, aubergine, courgette and mushrooms in a rich harissa-spiked tomato sauce, tossed through fusilli and topped with parmesan.",
+  "source": { "name": "Original recipe by the home cook", "url": "" },
+  "cuisine": "Mediterranean",
+  "course": "Dinner",
+  "tags": ["pasta", "one pot", "chorizo", "dinner", "veg-packed"],
+  "diets": [],
+  "prepTime": 15,
+  "cookTime": 35,
+  "totalTime": 50,
+  "servings": 4,
+  "servingsNoun": "servings",
+  "ingredients": [
+    { "id": "oil", "amount": 1, "unit": "tbsp", "item": "olive oil" },
+    { "id": "onion", "amount": 1, "unit": "", "item": "onion", "note": "diced" },
+    { "id": "garlic", "amount": 6, "unit": "cloves", "item": "garlic", "note": "medium, diced" },
+    { "id": "pepper", "amount": 1, "unit": "", "item": "pepper", "note": "cut to preferred size, e.g. strips cut into thirds" },
+    { "id": "aubergine", "amount": 1, "unit": "", "item": "aubergine", "note": "cut into ~1 cm cubes" },
+    { "id": "courgette", "amount": 1, "unit": "", "item": "courgette", "note": "cut into ~1 cm cubes" },
+    { "id": "mushrooms", "amount": 6, "unit": "", "item": "closed cup / chestnut mushrooms", "note": "halved then sliced" },
+    { "id": "chorizo", "amount": 200, "unit": "g", "item": "chorizo", "note": "roughly two; cut into small pieces" },
+    { "id": "tomato-paste", "amount": 2, "unit": "tbsp", "item": "tomato paste" },
+    { "id": "harissa", "amount": 1, "unit": "tsp", "item": "smoked harissa" },
+    { "id": "tomatoes", "amount": 2, "unit": "cans", "item": "tinned / chopped tomatoes", "note": "or a combo" },
+    { "id": "paprika", "amount": 0.5, "unit": "tsp", "item": "smoked paprika" },
+    { "id": "mixed-herbs", "amount": 0.5, "unit": "tsp", "item": "mixed herbs" },
+    { "id": "sumac", "amount": 0.25, "unit": "tsp", "item": "sumac" },
+    { "id": "stock-cube", "amount": 1, "unit": "", "item": "veg stock cube", "note": "crumbled in dry, not made up with water" },
+    { "id": "fusilli", "amount": 500, "unit": "g", "item": "fusilli" },
+    { "id": "parmesan", "amount": null, "unit": "", "item": "parmesan", "note": "to top" }
+  ],
+  "variants": [],
+  "steps": [
+    { "text": "Heat the {{oil}} in a large pot and fry the {{onion}} and {{garlic}} until softening.", "timer": { "minutes": 2, "label": "Soften onion & garlic" } },
+    { "text": "Add the {{pepper}} and cook.", "timer": { "minutes": 3, "label": "Cook the pepper" } },
+    { "text": "Add the {{courgette}} and {{aubergine}} and cook.", "timer": { "minutes": 5, "label": "Cook courgette & aubergine" } },
+    { "text": "Add the {{mushrooms}} and cook.", "timer": { "minutes": 5, "label": "Cook the mushrooms" } },
+    { "text": "Add the {{chorizo}} and cook until it starts releasing its oil.", "timer": { "minutes": 2, "label": "Fry the chorizo" } },
+    { "text": "Stir in the {{tomato-paste}} and {{harissa}}, mixing everything through well, and cook.", "timer": { "minutes": 2, "label": "Cook out paste & harissa" } },
+    { "text": "Add the {{tomatoes}} along with the {{paprika}}, {{mixed-herbs}}, {{sumac}} and crumbled {{stock-cube}}. Stir and simmer.", "timer": { "minutes": 15, "label": "Simmer the sauce" } },
+    { "text": "As soon as the tomatoes go in, add the {{fusilli}} to a pan of boiling water and cook to your liking.", "note": "Reserve a little pasta water before draining." },
+    { "text": "If the sauce gets too thick, loosen it with a splash of the reserved pasta water to your preference." },
+    { "text": "When the {{fusilli}} is cooked, drain and add it to the sauce pot." },
+    { "text": "Mix together, serve, and top with grated {{parmesan}}." }
+  ],
+  "notes": [
+    "Stock cube goes in dry and crumbled, not made up with water \u2014 it seasons the sauce directly.",
+    "Roughly 100 g dried pasta per person; 500 g comfortably feeds four hungry people or five lighter portions.",
+    "Adjust the harissa up or down to taste \u2014 it's the main heat source."
+  ],
+  "nutrition": {
+    "note": "Rough estimate based on the recipe as written, divided across 4 servings.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 4,
+    "items": [
+      { "label": "Energy", "unit": "kJ", "perServing": 3535, "ri": 8400 },
+      { "label": "", "unit": "kcal", "perServing": 845, "ri": 2000 },
+      { "label": "Fat", "unit": "g", "perServing": 28, "ri": 70 },
+      { "label": "of which saturates", "unit": "g", "perServing": 9, "ri": 20, "sub": true },
+      { "label": "Carbohydrate", "unit": "g", "perServing": 107, "ri": 260 },
+      { "label": "of which sugars", "unit": "g", "perServing": 10, "ri": 90, "sub": true },
+      { "label": "Fibre", "unit": "g", "perServing": 10 },
+      { "label": "Protein", "unit": "g", "perServing": 35, "ri": 50 },
+      { "label": "Salt", "unit": "g", "perServing": 2.6, "ri": 6 }
+    ]
+  }
+}
