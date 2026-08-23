@@ -90,4 +90,4 @@ Notes on behaviour:
 
 - **Filtering.** A recipe matches a diet filter if the original *or* any variant satisfies it. If you filter by a diet and open a recipe, it opens in that mode. The ingredient filter (with / without) also considers variants, so “without chicken stock” can surface a recipe via its vegetarian variant.
 - **Units.** `g kg ml l` render tight (`150g`); `tsp tbsp cup clove pinch` etc. scale to nice fractions (½, ⅓, ¾…). Others get a space.
-- **Images.** Hotlinking the source image works but is fragile. To self‑host, drop a file in `images/` and set `"image": "images/your-file.jpg"`.
+- **Images.** Name a file after the recipe's slug and drop it in `images/` — it's picked up automatically (`recipes/baked-ham.json` → `images/baked-ham.jpg`, `.png`, or `.webp`), no `image` field needed. Set `"image": "images/other.jpg"` (or an external URL) on a recipe only to override. Recipes with no matching image get a generated pattern tile. On GitHub Pages the match uses the same folder listing as recipes; when testing locally the app probes `images/<slug>.{jpg,jpeg,png,webp}` directly.

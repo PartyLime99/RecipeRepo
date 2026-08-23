@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.7.0";
+const APP_VERSION = "1.8.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -28,16 +28,51 @@ function detectRepo() {
   } catch (e) { return null; }
 }
 
-async function listRecipesViaGitHub(repo) {
-  const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/contents/${RECIPES_DIR}`;
+async function listFilesViaGitHub(repo, folder) {
+  const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/contents/${folder}`;
   const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
   if (!res.ok) throw new Error(`github ${res.status}`);
   const items = await res.json();
   if (!Array.isArray(items)) throw new Error("github: unexpected response");
-  return items
-    .filter((f) => f.type === "file" && /\.json$/i.test(f.name) && f.name.toLowerCase() !== "index.json")
-    .map((f) => f.name.replace(/\.json$/i, ""))
+  return items.filter((f) => f.type === "file").map((f) => f.name);
+}
+async function listRecipesViaGitHub(repo) {
+  const names = await listFilesViaGitHub(repo, RECIPES_DIR);
+  return names
+    .filter((n) => /\.json$/i.test(n) && n.toLowerCase() !== "index.json")
+    .map((n) => n.replace(/\.json$/i, ""))
     .sort();
+}
+
+/* ---------- automatic images (images/<slug>.<ext>) ---------- */
+const IMAGES_DIR = "images";
+const IMAGES_CACHE_KEY = "mise:images";
+let IMAGE_MAP = {};          // slug(lowercased) -> "images/<file>"
+let IMAGE_LISTING_OK = false; // did we get a reliable folder listing?
+
+async function loadImageMap() {
+  IMAGE_MAP = {}; IMAGE_LISTING_OK = false;
+  const repo = detectRepo();
+  const useCache = () => {
+    const c = store.get(IMAGES_CACHE_KEY, null);
+    if (c && c.map) { IMAGE_MAP = c.map; IMAGE_LISTING_OK = !!c.ok; }
+  };
+  if (!repo) { useCache(); return; }
+  try {
+    const files = await listFilesViaGitHub(repo, IMAGES_DIR);
+    const map = {};
+    files.filter((n) => /\.(jpe?g|png|webp|gif|avif)$/i.test(n)).forEach((name) => {
+      const base = name.replace(/\.[^.]+$/, "").toLowerCase();
+      if (!(base in map)) map[base] = `${IMAGES_DIR}/${name}`;
+    });
+    IMAGE_MAP = map; IMAGE_LISTING_OK = true;
+    store.set(IMAGES_CACHE_KEY, { map, ok: true });
+  } catch (e) { useCache(); }  // 404 (no images folder), offline, private, or rate-limited
+}
+function resolveImage(recipe) {
+  if (recipe.image) return recipe.image;                 // explicit override wins
+  const key = (recipe.slug || "").toLowerCase();
+  return IMAGE_MAP[key] || null;
 }
 
 /* ---------- storage helpers (localStorage, safe) ---------- */
@@ -294,6 +329,8 @@ async function renderListPage() {
   const results = await Promise.allSettled(slugs.map(loadRecipe));
   LIST_STATE.recipes = results.filter(r => r.status === "fulfilled").map(r => r.value);
 
+  await loadImageMap();   // resolve images/<slug>.<ext> so cards can auto-match
+
   clear(controls);
   buildControls(controls, grid);
   renderCards(grid);
@@ -391,9 +428,16 @@ function renderCards(grid) {
 
 function recipeCard(r, modeId) {
   const media = el("div", { class: "card__media" });
-  if (r.image) media.append(el("img", { src: r.image, alt: "", loading: "lazy",
-    onerror: (e) => { e.target.remove(); media.append(placeholder(r.title)); } }));
-  else media.append(placeholder(r.title));
+  const src = resolveImage(r);
+  if (src) {
+    const img = el("img", { src, alt: "", loading: "lazy" });
+    img.addEventListener("error", () => { img.remove(); media.append(placeholder(r.title, r.slug)); });
+    media.append(img);
+  } else if (!IMAGE_LISTING_OK) {
+    attachGuessedImage(media, r);   // local/offline: try images/<slug>.<ext>
+  } else {
+    media.append(placeholder(r.title, r.slug));
+  }
   if (r.totalTime) media.append(el("span", { class: "card__time" }, `${r.totalTime} min`));
 
   const favOn = isFav(r.slug);
@@ -418,7 +462,25 @@ function recipeCard(r, modeId) {
     )
   );
 }
-const placeholder = (title) => el("div", { class: "card__placeholder" }, (title || "?").trim()[0].toUpperCase());
+// local/offline fallback: probe common extensions, then fall back to a pattern
+function attachGuessedImage(media, r) {
+  const exts = ["jpg", "jpeg", "png", "webp"]; let i = 0;
+  const img = el("img", { alt: "", loading: "lazy" });
+  const tryNext = () => {
+    if (i >= exts.length) { img.remove(); media.append(placeholder(r.title, r.slug)); return; }
+    img.src = `${IMAGES_DIR}/${r.slug}.${exts[i++]}`;
+  };
+  img.addEventListener("error", tryNext);
+  media.append(img); tryNext();
+}
+const PH_PATTERNS = ["pat-dots", "pat-grid", "pat-diag", "pat-cross", "pat-waves", "pat-scale"];
+function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); }
+function placeholder(title, slug) {
+  const key = slug || title || "x";
+  const pat = PH_PATTERNS[hashStr(key) % PH_PATTERNS.length];
+  return el("div", { class: `card__placeholder ${pat}` },
+    el("span", { class: "ph-letter" }, (title || "?").trim()[0].toUpperCase()));
+}
 const truncate = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + "\u2026" : s;
 
 /* ---------- ingredient include/exclude filter popover ---------- */

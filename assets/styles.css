@@ -176,7 +176,15 @@ html[data-theme="dark"] .pill[aria-pressed="true"], html[data-theme="dark"] .pil
 .card:focus-visible { outline: 3px solid var(--paprika); outline-offset: 2px; }
 .card__media { aspect-ratio: 4 / 3; background: var(--paper-3); position: relative; overflow: hidden; }
 .card__media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.card__placeholder { width: 100%; height: 100%; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 52px; color: var(--green-text); background: radial-gradient(120% 120% at 20% 0%, var(--paper-2), var(--paper-3)); }
+.card__placeholder { position: relative; width: 100%; height: 100%; display: grid; place-items: center; overflow: hidden; background: radial-gradient(120% 120% at 20% 0%, var(--paper-2), var(--paper-3)); }
+.card__placeholder .ph-letter { position: relative; z-index: 1; font-family: var(--display); font-weight: 800; font-size: 52px; color: var(--green-text); opacity: .92; }
+.card__placeholder::before { content: ""; position: absolute; inset: 0; color: var(--green-text); }
+.pat-dots::before  { background-image: radial-gradient(currentColor 1.6px, transparent 1.8px); background-size: 16px 16px; opacity: .18; }
+.pat-grid::before  { background-image: linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px); background-size: 22px 22px; opacity: .13; }
+.pat-diag::before  { background-image: repeating-linear-gradient(45deg, currentColor 0 2px, transparent 2px 13px); opacity: .13; }
+.pat-cross::before { background-image: radial-gradient(currentColor 1.5px, transparent 1.7px), radial-gradient(currentColor 1.5px, transparent 1.7px); background-position: 0 0, 10px 10px; background-size: 20px 20px; opacity: .16; }
+.pat-waves::before { background-image: repeating-radial-gradient(circle at 50% 0, transparent 0 11px, currentColor 11px 12px); opacity: .10; }
+.pat-scale::before { background-image: radial-gradient(circle at 50% 100%, transparent 0 9px, currentColor 9px 10px, transparent 10px); background-size: 22px 14px; opacity: .13; }
 .card__time { position: absolute; left: 12px; bottom: 12px; font-family: var(--mono); font-size: 12px; font-weight: 700; background: var(--paper); color: var(--green-ink); border: 1.5px solid var(--green); padding: 4px 9px; border-radius: 999px; }
 html[data-theme="dark"] .card__time { color: var(--green-text); }
 .card__fav {
