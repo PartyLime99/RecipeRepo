@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.6.0";
+const APP_VERSION = "1.7.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -133,6 +133,16 @@ function amountText(ing, factor) {
     return tight ? `${amt}${ing.unit}` : `${amt} ${ing.unit}`;
   }
   return amt;
+}
+// optional parenthetical gram estimate for countable items (e.g. "1 onion (≈150 g)")
+function gramsBracket(ing, factor) {
+  const each = Number(ing.gramsEach);
+  if (!each || isNaN(each)) return "";
+  const count = ing.amount != null ? ing.amount : 1;
+  const g = each * count * factor;
+  if (!g) return "";
+  const rounded = g >= 100 ? Math.round(g / 10) * 10 : Math.round(g / 5) * 5;
+  return `\u2248\u202F${rounded}\u202Fg`;
 }
 
 /* ============================================================
@@ -698,13 +708,16 @@ function renderIngredients(listEl, mode, state) {
 
     const note = cleanNote(ing.note);
     const amt = amountText(ing, factor);
+    const gb = gramsBracket(ing, factor);
     const row = el("li", { class: "ing__row", role: "button", tabindex: "0" },
       el("span", { class: "ing__check", "aria-hidden": "true", html: ICON.check }),
       el("span", { class: "ing__amount" }, amt || "\u00A0"),
-      el("span", { class: "ing__item" }, ing.item, ing._swapped ? el("span", { class: "ing__swap", title: `was ${ing._original}` }, "swap") : null),
+      el("span", { class: "ing__item" }, ing.item,
+        gb ? el("span", { class: "ing__grams" }, ` (${gb})`) : null,
+        ing._swapped ? el("span", { class: "ing__swap", title: `was ${ing._original}` }, "swap") : null),
       note ? el("span", { class: "ing__note" }, note) : null
     );
-    row.dataset.copy = (amt ? amt + " " : "") + ing.item;
+    row.dataset.copy = (amt ? amt + " " : "") + ing.item + (gb ? ` (${gb})` : "");
     const toggle = () => row.classList.toggle("done");
     row.addEventListener("click", toggle);
     row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
@@ -776,9 +789,10 @@ function renderStepText(text, byId, factor) {
 function showQtyPopover(anchor, ing, factor) {
   closePopovers();
   const amt = amountText(ing, factor);
+  const gb = gramsBracket(ing, factor);
   const note = cleanNote(ing.note);
   const pop = el("div", { class: "popover", "data-popover": "1" },
-    amt ? el("div", { class: "pop-amt" }, amt) : el("div", { class: "pop-amt" }, "to taste"),
+    el("div", { class: "pop-amt" }, (amt || "to taste") + (gb ? ` (${gb})` : "")),
     el("div", { class: "pop-item" }, ing.item),
     note ? el("div", { class: "pop-note" }, note) : null);
   document.body.append(pop);
