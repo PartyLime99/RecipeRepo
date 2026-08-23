@@ -1,0 +1,36 @@
+{
+  "slug": "baked-ham",
+  "title": "Baked Ham",
+  "subtitle": "Scales to your joint \u00b7 gas mark 6",
+  "description": "A whole ham baked under a flour-and-water huff paste so it steams tender, then finished with browned breadcrumbs or a glaze. Set the weight of your joint and the quantities and bake time scale to match.",
+  "source": { "name": "Adapted from a mid-century Regulo cookery guide", "url": "" },
+  "cuisine": "British",
+  "course": "Main",
+  "tags": ["ham", "roast", "make-ahead", "christmas"],
+  "diets": [],
+  "scaleBy": "weight",
+  "weightBase": 1500,
+  "weightStep": 100,
+  "weightMin": 500,
+  "weightMax": 6000,
+  "ingredients": [
+    { "id": "ham", "amount": 1500, "unit": "g", "item": "ham or gammon joint", "note": "soaked 24h, trimmed; enter your joint's weight above" },
+    { "id": "flour", "amount": 500, "unit": "g", "item": "plain flour", "note": "for the huff paste" },
+    { "id": "water", "amount": 250, "unit": "ml", "item": "cold water", "note": "roughly 2 parts flour to 1 part water" },
+    { "id": "breadcrumbs", "amount": 75, "unit": "g", "item": "dried breadcrumbs", "note": "browned, to finish (or use a glaze)" }
+  ],
+  "variants": [],
+  "steps": [
+    { "text": "Soak the {{ham}} in plenty of cold water for 24 hours to draw out salt, changing the water once or twice. Drain and trim neatly.", "timer": { "minutes": 0, "label": "Soak (24 hours)" } },
+    { "text": "Heat the oven to gas mark 6 (200\u00b0C / 180\u00b0C fan). Mix the {{flour}} and {{water}} into a stiff paste, roll it out, and wrap the {{ham}} completely so it's sealed in." },
+    { "text": "Bake in the middle of the oven. The timer is set for your joint \u2014 about 36 minutes per pound for hams up to 3 lb, or 30 minutes per pound between 3 and 6 lb.", "timer": { "label": "Bake the ham", "perWeight": { "brackets": [ { "upToKg": 1.36, "minutesPerKg": 79 }, { "upToKg": 2.72, "minutesPerKg": 66 } ] } } },
+    { "text": "Lift out and let it rest until cool enough to handle. Peel off the paste and the skin.", "timer": { "minutes": 15, "label": "Rest" } },
+    { "text": "Press {{breadcrumbs}} over the fat (or brush with your glaze) and, if you like, flash back in the hot oven for a few minutes to set. Slice and serve." }
+  ],
+  "notes": [
+    "The 24-hour soak assumes a traditional salted/cured ham; for a mild supermarket gammon a few hours is plenty, or skip it and just simmer-then-bake.",
+    "The flour paste (a 'huff paste') isn't for eating \u2014 it traps steam so the meat stays moist. Discard it after baking.",
+    "Gas mark 6 is about 200\u00b0C conventional / 180\u00b0C fan.",
+    "For a glaze instead of crumbs: score the fat, stud with cloves, and brush with mustard and brown sugar or honey before the final blast in the oven."
+  ]
+}
