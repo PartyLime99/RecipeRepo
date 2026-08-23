@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.5.0";
+const APP_VERSION = "1.6.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -95,6 +95,7 @@ const ICON = {
   chart:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
   chevL:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
   chevR:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
+  copy:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
 };
 
 /* diet labels */
@@ -140,6 +141,25 @@ function amountText(ing, factor) {
    (e.g. vegetarian, vegan). Each mode yields an effective ingredient
    list (base with swaps applied) and a set of diet ids it satisfies.
    ============================================================ */
+/* ---------- scaling (servings or weight) ---------- */
+function scaleFactor(state) {
+  if (state.kind === "weight") return state.baseWeight ? state.weightG / state.baseWeight : 1;
+  return state.base ? state.servings / state.base : 1;
+}
+// cooking time that scales with weight, with optional rate brackets (e.g. 36 min/lb up to 3lb…)
+function timerMinutesForWeight(perWeight, weightG) {
+  const kg = weightG / 1000;
+  const brs = (perWeight && perWeight.brackets) || [];
+  if (!brs.length) return 0;
+  let chosen = brs[brs.length - 1];
+  for (const b of brs) { if (kg <= (b.upToKg != null ? b.upToKg : Infinity)) { chosen = b; break; } }
+  const rate = chosen ? (Number(chosen.minutesPerKg) || 0) : 0;
+  const base = perWeight.plusMinutes ? Number(perWeight.plusMinutes) : 0;
+  return Math.max(1, Math.round(rate * kg + base));
+}
+const KG = 1000, LB = 453.592;
+const fmtWeight = (g) => g >= 1000 ? `${round(g / 1000, 2)} kg` : `${Math.round(g)} g`;
+
 function recipeModes(recipe) {
   const base = recipe.ingredients || [];
   const modes = [{
@@ -448,44 +468,82 @@ async function renderRecipePage(slug, initialModeId) {
   }
 
   document.title = `${r.title} \u2014 ${SITE_NAME}`;
-  const base = Number(r.servings) || 1;
   const modes = recipeModes(r);
-  // resolve initial mode (from filter navigation) if valid
   let modeId = modes.some(m => m.id === initialModeId) ? initialModeId : null;
 
-  const state = { servings: base, base, noun: r.servingsNoun || "servings", modeId };
+  const byWeight = r.scaleBy === "weight";
+  const base = Number(r.servings) || 1;
+  const baseWeight = Number(r.weightBase) || 1000;
+  const wStep = Number(r.weightStep) || 100;
+  const wMin = Number(r.weightMin) || wStep;
+  const wMax = Number(r.weightMax) || baseWeight * 8;
+  const state = byWeight
+    ? { kind: "weight", weightG: baseWeight, baseWeight, modeId }
+    : { kind: "servings", servings: base, base, noun: r.servingsNoun || "servings", modeId };
 
   clear(view);
   const page = el("section", { class: "recipe" });
 
-  /* ---- top block ---- */
-  const valueEl = el("span", { class: "scaler__value" }, String(state.servings));
-  const minusBtn = el("button", { class: "scaler__btn", "aria-label": "Fewer servings" }, "\u2013");
-  const plusBtn  = el("button", { class: "scaler__btn", "aria-label": "More servings" }, "+");
-  const resetBtn = el("button", { class: "scaler__reset", hidden: true }, "reset");
-
   const ingList = el("ul", { class: "ing" });
   const stepsWrap = el("ol", { class: "steps" });
-
   const rerenderCook = () => {
     const mode = modeById(r, state.modeId);
     renderIngredients(ingList, mode, state);
     renderSteps(stepsWrap, r, mode, state);
   };
-  const setServings = (n) => {
-    state.servings = Math.max(1, Math.min(50, n));
-    valueEl.textContent = String(state.servings);
-    minusBtn.disabled = state.servings <= 1;
-    resetBtn.hidden = state.servings === state.base;
-    rerenderCook();
-  };
-  minusBtn.addEventListener("click", () => setServings(state.servings - 1));
-  plusBtn.addEventListener("click", () => setServings(state.servings + 1));
-  resetBtn.addEventListener("click", () => setServings(state.base));
 
-  const scaler = el("div", { class: "scaler", role: "group", "aria-label": "Scale servings" },
-    el("span", { class: "scaler__label" }, "Serves"), minusBtn, valueEl, plusBtn,
-    el("span", { class: "scaler__noun" }, state.noun), resetBtn);
+  /* ---- scaler (servings or weight) ---- */
+  let scaler;
+  if (byWeight) {
+    const input = el("input", { class: "scaler__input", type: "text", inputmode: "numeric",
+      "aria-label": "Weight in grams", value: String(state.weightG) });
+    const unit = el("span", { class: "scaler__unit" }, "g");
+    const hint = el("span", { class: "scaler__hint" });
+    const minusBtn = el("button", { class: "scaler__btn", "aria-label": "Less weight" }, "\u2013");
+    const plusBtn = el("button", { class: "scaler__btn", "aria-label": "More weight" }, "+");
+    const resetBtn = el("button", { class: "scaler__reset", hidden: true }, "reset");
+    const paint = () => {
+      input.value = String(state.weightG);
+      hint.textContent = `\u2248 ${round(state.weightG / KG, 2)} kg \u00b7 ${round(state.weightG / LB, 1)} lb`;
+      minusBtn.disabled = state.weightG <= wMin;
+      resetBtn.hidden = state.weightG === baseWeight;
+    };
+    const setWeight = (g) => {
+      g = Math.round(g / 1) ;
+      state.weightG = Math.max(wMin, Math.min(wMax, Math.round(g)));
+      paint(); rerenderCook();
+    };
+    minusBtn.addEventListener("click", () => setWeight(state.weightG - wStep));
+    plusBtn.addEventListener("click", () => setWeight(state.weightG + wStep));
+    resetBtn.addEventListener("click", () => setWeight(baseWeight));
+    const commit = () => { const v = parseFloat(input.value.replace(/[^\d.]/g, "")); if (!isNaN(v)) setWeight(v); else paint(); };
+    input.addEventListener("change", commit);
+    input.addEventListener("blur", commit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); input.blur(); } });
+    scaler = el("div", { class: "scaler scaler--weight", role: "group", "aria-label": "Set weight" },
+      el("span", { class: "scaler__label" }, "Weight"), minusBtn,
+      el("span", { class: "scaler__field" }, input, unit), plusBtn, resetBtn,
+      hint);
+    setTimeout(paint, 0);
+  } else {
+    const valueEl = el("span", { class: "scaler__value" }, String(state.servings));
+    const minusBtn = el("button", { class: "scaler__btn", "aria-label": "Fewer servings" }, "\u2013");
+    const plusBtn = el("button", { class: "scaler__btn", "aria-label": "More servings" }, "+");
+    const resetBtn = el("button", { class: "scaler__reset", hidden: true }, "reset");
+    const setServings = (n) => {
+      state.servings = Math.max(1, Math.min(50, n));
+      valueEl.textContent = String(state.servings);
+      minusBtn.disabled = state.servings <= 1;
+      resetBtn.hidden = state.servings === state.base;
+      rerenderCook();
+    };
+    minusBtn.addEventListener("click", () => setServings(state.servings - 1));
+    plusBtn.addEventListener("click", () => setServings(state.servings + 1));
+    resetBtn.addEventListener("click", () => setServings(state.base));
+    scaler = el("div", { class: "scaler", role: "group", "aria-label": "Scale servings" },
+      el("span", { class: "scaler__label" }, "Serves"), minusBtn, valueEl, plusBtn,
+      el("span", { class: "scaler__noun" }, state.noun), resetBtn);
+  }
 
   // favourite + nutrition + mode controls
   const favOn = isFav(r.slug);
@@ -536,9 +594,11 @@ async function renderRecipePage(slug, initialModeId) {
   const ingHead = el("div", { class: "pane__head" },
     el("h2", { class: "pane__title", id: "ingredients-heading" }, "Ingredients"));
   const ingBody = el("div", { class: "pane__body" }, ingList);
+  const copyBtn = el("button", { class: "pane__copy", "aria-label": "Copy unchecked ingredients", title: "Copy unchecked ingredients",
+    onclick: () => copyIngredients(ingList, r.title, copyBtn), html: ICON.copy });
   const collapseBtn = el("button", { class: "pane__collapse", "aria-label": "Hide ingredients", title: "Hide ingredients",
     html: ICON.chevL });
-  ingHead.append(collapseBtn);
+  ingHead.append(copyBtn, collapseBtn);
   const ingPane = el("div", { class: "pane pane--ingredients" }, ingHead, ingBody);
 
   const methodBody = el("div", { class: "pane__body" }, stepsWrap);
@@ -565,7 +625,6 @@ async function renderRecipePage(slug, initialModeId) {
   view.append(page);
 
   rerenderCook();
-  setServings(state.servings);
 
   /* ---- smooth collapse-on-scroll (interpolated, not a jump) ---- */
   if (cleanupScroll) { cleanupScroll(); cleanupScroll = null; }
@@ -620,7 +679,7 @@ const cleanNote = (n) => {
 /* ---------- ingredients (re-rendered on scale/mode) ---------- */
 function renderIngredients(listEl, mode, state) {
   clear(listEl);
-  const factor = state.servings / state.base;
+  const factor = scaleFactor(state);
   const scaled = Math.abs(factor - 1) > 1e-9;
   let lastGroup;
 
@@ -638,12 +697,14 @@ function renderIngredients(listEl, mode, state) {
     }
 
     const note = cleanNote(ing.note);
+    const amt = amountText(ing, factor);
     const row = el("li", { class: "ing__row", role: "button", tabindex: "0" },
       el("span", { class: "ing__check", "aria-hidden": "true", html: ICON.check }),
-      el("span", { class: "ing__amount" }, amountText(ing, factor) || "\u00A0"),
+      el("span", { class: "ing__amount" }, amt || "\u00A0"),
       el("span", { class: "ing__item" }, ing.item, ing._swapped ? el("span", { class: "ing__swap", title: `was ${ing._original}` }, "swap") : null),
       note ? el("span", { class: "ing__note" }, note) : null
     );
+    row.dataset.copy = (amt ? amt + " " : "") + ing.item;
     const toggle = () => row.classList.toggle("done");
     row.addEventListener("click", toggle);
     row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
@@ -660,7 +721,7 @@ function renderIngredients(listEl, mode, state) {
 /* ---------- method (tokens -> tappable ingredient chips) ---------- */
 function renderSteps(listEl, recipe, mode, state) {
   clear(listEl);
-  const factor = state.servings / state.base;
+  const factor = scaleFactor(state);
   const byId = {};
   (mode.ingredients || []).forEach((i) => { if (i.id) byId[i.id] = i; });
 
@@ -677,7 +738,10 @@ function renderSteps(listEl, recipe, mode, state) {
     const body = el("div", { class: "step__body" });
     body.append(renderStepText(text, byId, factor));
     if (step.timer) {
-      const seconds = (Number(step.timer.minutes) || 0) * 60 + (Number(step.timer.seconds) || 0);
+      let seconds = (Number(step.timer.minutes) || 0) * 60 + (Number(step.timer.seconds) || 0);
+      if (step.timer.perWeight && state.kind === "weight") {
+        seconds = timerMinutesForWeight(step.timer.perWeight, state.weightG) * 60;
+      }
       if (seconds > 0) body.append(buildTimer(seconds, step.timer.label || `Step ${n}`));
     }
     listEl.append(el("li", { class: "step" }, el("span", { class: "step__num" }, String(n)), body));
@@ -927,7 +991,40 @@ function beep(when = 0, freq = 880, dur = 0.16, gain = 0.28) {
   osc.connect(g).connect(audioCtx.destination); osc.start(t); osc.stop(t + dur + 0.02);
 }
 function ringPattern() { beep(0, 880, 0.16); beep(0.22, 1174, 0.2); }
-function fmt(s) { const m = Math.floor(s / 60); return `${m}:${String(s % 60).padStart(2, "0")}`; }
+function fmt(s) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  return `${m}:${String(sec).padStart(2, "0")}`;
+}
+
+/* ---------- copy unchecked ingredients ---------- */
+function copyIngredients(listEl, title, btn) {
+  const lines = [...listEl.querySelectorAll(".ing__row:not(.done):not(.removed)")]
+    .map((r) => r.dataset.copy).filter(Boolean);
+  if (!lines.length) { toast("Nothing to copy \u2014 all ticked off"); return; }
+  const text = (title ? title + "\n" : "") + lines.map((l) => "\u2610 " + l).join("\n");
+  const done = () => toast(`Copied ${lines.length} item${lines.length > 1 ? "s" : ""}`);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select();
+    document.execCommand("copy"); ta.remove(); done();
+  } catch (e) { toast("Couldn't copy automatically"); }
+}
+let toastTimer = null;
+function toast(msg) {
+  let t = document.getElementById("mise-toast");
+  if (!t) { t = el("div", { id: "mise-toast", class: "toast" }); document.body.append(t); }
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
 
 function buildTimer(totalSeconds, label) {
   let remaining = totalSeconds, iv = null, ringIv = null, statusName = "idle";
