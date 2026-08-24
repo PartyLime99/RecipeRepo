@@ -29,7 +29,7 @@
     { "id": "mixed-herbs", "amount": 0.5, "unit": "tsp", "item": "mixed herbs" },
     { "id": "sumac", "amount": 0.25, "unit": "tsp", "item": "sumac" },
     { "id": "stock-cube", "amount": 1, "unit": "", "item": "veg stock cube", "note": "crumbled in dry, not made up with water" },
-    { "id": "fusilli", "amount": 500, "unit": "g", "item": "fusilli" },
+    { "id": "fusilli", "amount": 420, "unit": "g", "item": "fusilli" },
     { "id": "parmesan", "amount": null, "unit": "", "item": "parmesan", "note": "to top" }
   ],
   "variants": [
