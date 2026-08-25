@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.10.0";
+const APP_VERSION = "1.11.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -152,6 +152,8 @@ const ICON = {
   share:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
   cook:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M6 20V9a6 6 0 0 1 12 0v11"/><path d="M9 9a3 3 0 0 1 6 0"/></svg>',
   cart:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.4a1.5 1.5 0 0 0 1.5 1.2h8.2a1.5 1.5 0 0 0 1.5-1.2L22 7H6"/></svg>',
+  trash:  '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14M10 11v6M14 11v6"/></svg>',
+  plus:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
 };
 
 /* diet labels */
@@ -182,10 +184,13 @@ function toFraction(value) {
   return String(round(value, 2));
 }
 const VOL_ML = { tsp: 5, tbsp: 15, cup: 250, cups: 250, fl_oz: 30, floz: 30 };
+let volumeOverride = null; // temporary per-recipe override of the Settings volume default
+const effVolume = () => volumeOverride || getUnits().volume;
+const hasVolumeUnits = (recipe) => (recipe.ingredients || []).some((i) => VOL_ML[(i.unit || "").toLowerCase()]);
 function amountText(ing, factor) {
   if (ing.amount == null) return "";
   const u = (ing.unit || "").toLowerCase();
-  if (getUnits().volume === "ml" && VOL_ML[u]) {
+  if (effVolume() === "ml" && VOL_ML[u]) {
     return `${Math.round(ing.amount * factor * VOL_ML[u])}ml`;
   }
   const amt = formatAmount(ing.amount * factor, ing.unit);
@@ -308,12 +313,16 @@ function route() {
   closePopovers();
   if (cleanupScroll) { cleanupScroll(); cleanupScroll = null; }
   toggleCookMode(null, false);                       // leave cook mode when navigating
+  volumeOverride = null;                              // temporary unit override is per-recipe
   const ib = document.getElementById("install-banner"); if (ib) ib.remove();
   const hash = location.hash.replace(/^#\/?/, "");
   const parts = hash.split("/");
   if (parts[0] === "r" && parts[1]) {
     document.body.className = "route-recipe";
     renderRecipePage(decodeURIComponent(parts[1]), parts[2] ? decodeURIComponent(parts[2]) : undefined);
+  } else if (parts[0] === "shopping" && parts[1] === "add") {
+    document.body.className = "route-list route-pick";
+    renderListPage({ pick: true });
   } else if (parts[0] === "shopping") {
     document.body.className = "route-shopping";
     renderShoppingPage();
@@ -330,16 +339,33 @@ function route() {
 let LIST_STATE = { recipes: [], query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set(), sort: "name" };
 const emptyFilters = () => ({ recipes: LIST_STATE.recipes, query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set(), sort: LIST_STATE.sort });
 const anyFilterActive = () => LIST_STATE.query || LIST_STATE.cuisines.size || LIST_STATE.diets.size || LIST_STATE.favOnly || LIST_STATE.inc.size || LIST_STATE.exc.size;
+let PICK_MODE = false;
+const defaultQty = (r) => r.scaleBy === "weight" ? (Number(r.weightBase) || 1000) : (Number(r.servings) || 2);
+function addMealToShopping(r) {
+  const sel = store.get(SHOPPING_KEY, {});
+  if (!(r.slug in sel)) sel[r.slug] = defaultQty(r);
+  store.set(SHOPPING_KEY, sel);
+}
 
-async function renderListPage() {
+async function renderListPage(opts) {
+  PICK_MODE = !!(opts && opts.pick);
   clear(view);
   const wrap = el("section", { class: "list" });
-  wrap.append(el("div", { class: "list__intro" },
-    el("p", { class: "eyebrow" }, SITE_NAME),
-    el("h1", { class: "list__title" }, "What are we cooking?"),
-    el("p", { class: "list__lede" }, "A personal collection \u2014 every recipe scales to any number of people, adapts to diets, and runs its own step timers while you cook."),
-    el("a", { class: "chipbtn primary intro-shop", href: "#/shopping" }, el("span", { html: ICON.cart }), "Make a shopping list")
-  ));
+  if (PICK_MODE) {
+    wrap.append(el("div", { class: "list__intro" },
+      el("p", { class: "eyebrow" }, "Shopping list"),
+      el("h1", { class: "list__title" }, "Add a meal"),
+      el("p", { class: "list__lede" }, "Tap a recipe to add it to your shopping list."),
+      el("a", { class: "chipbtn primary intro-shop", href: "#/shopping" }, "Done \u2192 back to list")
+    ));
+  } else {
+    wrap.append(el("div", { class: "list__intro" },
+      el("p", { class: "eyebrow" }, SITE_NAME),
+      el("h1", { class: "list__title" }, "What are we cooking?"),
+      el("p", { class: "list__lede" }, "A personal collection \u2014 every recipe scales to any number of people, adapts to diets, and runs its own step timers while you cook."),
+      el("a", { class: "chipbtn primary intro-shop", href: "#/shopping" }, el("span", { html: ICON.cart }), "Make a shopping list")
+    ));
+  }
   const controls = el("div", { class: "controls" });
   const grid = el("div", { class: "grid" });
   wrap.append(controls, grid);
@@ -384,7 +410,7 @@ function buildControls(controls, grid) {
     onclick: () => { LIST_STATE.favOnly = !LIST_STATE.favOnly; buildControls(controls, grid); renderCards(grid); } },
     el("span", { html: LIST_STATE.favOnly ? ICON.starF : ICON.starO }), "Favourites");
 
-  const SORTS = [["name", "Name (A\u2013Z)"], ["quickest", "Quickest"], ["most", "Most viewed"], ["recent", "Recently viewed"]];
+  const SORTS = [["name", "Name (A\u2013Z)"], ["newest", "Newest"], ["quickest", "Quickest"], ["most", "Most viewed"], ["recent", "Recently viewed"]];
   const sortLbl = () => (SORTS.find((s) => s[0] === LIST_STATE.sort) || SORTS[0])[1];
   const sortBtn = el("button", { class: "pill dropdown-btn", "data-poptrigger": "1", title: "Sort recipes" },
     el("span", { class: "chev", html: ICON.sort }), el("span", { class: "sort-lbl" }, sortLbl()), el("span", { class: "chev", html: ICON.chevD }));
@@ -569,8 +595,10 @@ function renderCards(grid) {
   }
   const stats = getStats();
   const cmpName = (a, b) => a.r.title.localeCompare(b.r.title);
+  const addedTime = (r) => { const t = Date.parse(r.added || r.date || ""); return isNaN(t) ? -Infinity : t; };
   const sorters = {
     name: cmpName,
+    newest: (a, b) => (addedTime(b.r) - addedTime(a.r)) || cmpName(a, b),
     quickest: (a, b) => ((a.r.totalTime || 1e9) - (b.r.totalTime || 1e9)) || cmpName(a, b),
     most: (a, b) => (((stats[b.r.slug] || {}).count || 0) - ((stats[a.r.slug] || {}).count || 0)) || cmpName(a, b),
     recent: (a, b) => (((stats[b.r.slug] || {}).last || 0) - ((stats[a.r.slug] || {}).last || 0)) || cmpName(a, b),
@@ -603,6 +631,14 @@ function recipeCard(r, modeId) {
   // link to recipe, carrying the chosen mode when a diet filter selected it
   const href = modeId ? `#/r/${r.slug}/${modeId}` : `#/r/${r.slug}`;
   const dietsShown = (r.diets || []);
+  if (PICK_MODE) {
+    return el("a", { class: "card card--pick", href: "#/shopping",
+      onclick: () => { addMealToShopping(r); toast(`Added ${r.title}`); } },
+      media,
+      el("div", { class: "card__body" },
+        el("h2", { class: "card__title" }, r.title),
+        el("div", { class: "card__tags" }, el("span", { class: "chip add-chip" }, "+ Add to list"))));
+  }
   return el("a", { class: "card", href },
     media,
     el("div", { class: "card__body" },
@@ -644,145 +680,115 @@ const truncate = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + "\u2026"
    ============================================================ */
 async function renderShoppingPage() {
   clear(view);
-  view.append(el("p", { class: "loading-msg" }, "Loading\u2026"));
-  let slugs;
-  try { slugs = await loadManifest(); } catch (e) { slugs = []; }
-  const loaded = await Promise.allSettled(slugs.map(loadRecipe));
-  const recipes = loaded.filter(r => r.status === "fulfilled").map(r => r.value);
-  const bySlug = Object.fromEntries(recipes.map(r => [r.slug, r]));
+  const sel = store.get(SHOPPING_KEY, {});           // { slug: servings|grams }
+  const pantry = getPantry();                          // Set of ticked item names (lowercased)
+  const slugs = Object.keys(sel);
 
-  const sel = store.get(SHOPPING_KEY, {});          // { slug: servings }
-  const pantry = getPantry();                        // Set of ticked item names
+  view.append(el("p", { class: "loading-msg" }, "Loading\u2026"));
+  const loaded = await Promise.allSettled(slugs.map(loadRecipe));
+  const bySlug = {};
+  loaded.forEach((res) => { if (res.status === "fulfilled") bySlug[res.value.slug] = res.value; });
+  // drop any selections whose recipe no longer exists
+  Object.keys(sel).forEach((s) => { if (!bySlug[s]) delete sel[s]; });
+  store.set(SHOPPING_KEY, sel);
 
   clear(view);
   const page = el("section", { class: "shopping" });
   page.append(el("div", { class: "shopping__top" },
-    el("a", { class: "backlink", href: "#/" }, el("span", { html: ICON.back }), "All recipes"),
-    el("h1", { class: "shopping__title" }, "Shopping list")));
+    el("h1", { class: "shopping__title" }, "Shopping list"),
+    el("a", { class: "chipbtn primary", href: "#/shopping/add" }, el("span", { html: ICON.plus }), "Add meal")));
 
-  const pickWrap = el("div", { class: "shop-picker" });
+  const mealsWrap = el("div", { class: "shop-meals" });
   const listWrap = el("div", { class: "shop-list" });
-  page.append(el("div", { class: "shopping__grid" }, pickWrap, listWrap));
+  page.append(mealsWrap, listWrap);
   view.append(page);
 
   const saveSel = () => store.set(SHOPPING_KEY, sel);
+  const factorFor = (r) => r.scaleBy === "weight" ? (sel[r.slug] / (Number(r.weightBase) || 1000)) : (sel[r.slug] / (Number(r.servings) || 1));
 
-  const renderPicker = () => {
-    clear(pickWrap);
-    pickWrap.append(el("h2", { class: "shop-h" }, "Recipes"));
-    if (!recipes.length) { pickWrap.append(el("p", { class: "empty" }, "No recipes found.")); return; }
-    recipes.slice().sort((a, b) => a.title.localeCompare(b.title)).forEach((r) => {
-      const on = r.slug in sel;
-      const row = el("div", { class: "shop-pick" + (on ? " on" : "") });
-      const check = el("button", { class: "shop-pick__check", "aria-label": on ? "Remove" : "Add",
-        onclick: () => { if (r.slug in sel) delete sel[r.slug]; else sel[r.slug] = Number(r.servings) || (r.scaleBy === "weight" ? (Number(r.weightBase) || 1000) : 2); saveSel(); renderPicker(); renderList(); },
-        html: on ? ICON.check : "" });
-      const label = el("div", { class: "shop-pick__label" }, r.title,
-        r.scaleBy === "weight" ? el("span", { class: "shop-pick__sub" }, "by weight (g)") : null);
-      const stepper = el("div", { class: "shop-pick__qty" });
-      if (on) {
-        const val = el("span", { class: "shop-pick__val" }, String(sel[r.slug]));
-        const step = r.scaleBy === "weight" ? (Number(r.weightStep) || 100) : 1;
-        const dec = el("button", { class: "mini", "aria-label": "less", onclick: () => { sel[r.slug] = Math.max(step, (sel[r.slug] || step) - step); val.textContent = String(sel[r.slug]); saveSel(); renderList(); } }, "\u2013");
-        const inc = el("button", { class: "mini", "aria-label": "more", onclick: () => { sel[r.slug] = (sel[r.slug] || 0) + step; val.textContent = String(sel[r.slug]); saveSel(); renderList(); } }, "+");
-        stepper.append(dec, val, inc, el("span", { class: "shop-pick__unit" }, r.scaleBy === "weight" ? "g" : (r.servingsNoun || "srv")));
-      }
-      row.append(check, label, stepper);
-      pickWrap.append(row);
+  const renderMeals = () => {
+    clear(mealsWrap);
+    const chosen = Object.keys(sel).filter((s) => bySlug[s]);
+    if (!chosen.length) {
+      mealsWrap.append(el("div", { class: "shop-empty" },
+        el("p", {}, "No meals yet."),
+        el("a", { class: "chipbtn primary", href: "#/shopping/add" }, el("span", { html: ICON.plus }), "Add your first meal")));
+      return;
+    }
+    chosen.map((s) => bySlug[s]).sort((a, b) => a.title.localeCompare(b.title)).forEach((r) => {
+      const byWeight = r.scaleBy === "weight";
+      const step = byWeight ? (Number(r.weightStep) || 100) : 1;
+      const unit = byWeight ? "g" : (r.servingsNoun || "servings");
+      const val = el("span", { class: "shop-meal__val" }, String(sel[r.slug]));
+      const dec = el("button", { class: "mini", "aria-label": "less", onclick: () => { sel[r.slug] = Math.max(step, (sel[r.slug] || step) - step); val.textContent = String(sel[r.slug]); saveSel(); renderList(); } }, "\u2013");
+      const inc = el("button", { class: "mini", "aria-label": "more", onclick: () => { sel[r.slug] = (sel[r.slug] || 0) + step; val.textContent = String(sel[r.slug]); saveSel(); renderList(); } }, "+");
+      const bin = el("button", { class: "shop-meal__bin", "aria-label": `Remove ${r.title}`, title: "Remove",
+        onclick: () => { delete sel[r.slug]; saveSel(); renderMeals(); renderList(); }, html: ICON.trash });
+      mealsWrap.append(el("div", { class: "shop-meal" },
+        el("a", { class: "shop-meal__name", href: `#/r/${r.slug}` }, r.title),
+        el("div", { class: "shop-meal__qty" }, el("span", { class: "shop-meal__lbl" }, "Serves"), dec, val, inc, el("span", { class: "shop-meal__unit" }, unit)),
+        bin));
     });
+  };
+
+  const mergeItems = () => {
+    const merged = new Map();
+    Object.keys(sel).filter((s) => bySlug[s]).forEach((slug) => {
+      const r = bySlug[slug]; const factor = factorFor(r);
+      (modeById(r, null).ingredients || []).forEach((ing) => {
+        if (ing._removed) return;
+        const key = (ing.item || "").toLowerCase().trim(); if (!key) return;
+        if (!merged.has(key)) merged.set(key, { item: ing.item, entries: [] });
+        merged.get(key).entries.push(ing.amount != null ? { amount: ing.amount * factor, unit: ing.unit || "" } : { amount: null, unit: ing.unit || "" });
+      });
+    });
+    return merged;
+  };
+  const fmtMerged = (rec) => {
+    const nums = rec.entries.filter((e) => e.amount != null);
+    if (!nums.length) return "";
+    const units = [...new Set(nums.map((e) => e.unit.toLowerCase()))];
+    if (units.length === 1) return amountText({ amount: nums.reduce((s, e) => s + e.amount, 0), unit: nums[0].unit }, 1);
+    return nums.map((e) => amountText({ amount: e.amount, unit: e.unit }, 1)).join(" + ");
   };
 
   const renderList = () => {
     clear(listWrap);
-    const chosen = Object.keys(sel).filter(s => bySlug[s]);
-    listWrap.append(el("div", { class: "shop-list__head" },
-      el("h2", { class: "shop-h" }, "Your list"),
-      chosen.length ? el("button", { class: "chipbtn", onclick: copyList }, el("span", { html: ICON.copy }), "Copy") : null,
-      chosen.length && navigator.share ? el("button", { class: "chipbtn", onclick: shareList }, el("span", { html: ICON.share }), "Share") : null));
-
-    if (!chosen.length) { listWrap.append(el("p", { class: "empty" }, "Pick some recipes to build your list.")); return; }
-
-    // merge ingredients across chosen recipes
-    const merged = new Map();  // key: item(lower) -> { item, entries:[{amount,unit}], hasNull }
-    chosen.forEach((slug) => {
-      const r = bySlug[slug];
-      const factor = r.scaleBy === "weight" ? (sel[slug] / (Number(r.weightBase) || 1000)) : (sel[slug] / (Number(r.servings) || 1));
-      const mode = modeById(r, null);
-      (mode.ingredients || []).forEach((ing) => {
-        if (ing._removed) return;
-        const key = (ing.item || "").toLowerCase().trim();
-        if (!key) return;
-        if (!merged.has(key)) merged.set(key, { item: ing.item, entries: [], any: false });
-        const rec = merged.get(key);
-        rec.any = true;
-        if (ing.amount != null) rec.entries.push({ amount: ing.amount * factor, unit: (ing.unit || "") });
-        else rec.entries.push({ amount: null, unit: (ing.unit || "") });
-      });
-    });
-
-    const fmtMerged = (rec) => {
-      const nums = rec.entries.filter(e => e.amount != null);
-      if (!nums.length) return "";
-      const units = [...new Set(nums.map(e => e.unit.toLowerCase()))];
-      if (units.length === 1) {
-        const total = nums.reduce((s, e) => s + e.amount, 0);
-        return amountText({ amount: total, unit: nums[0].unit }, 1);
-      }
-      // mixed units: show each amount joined
-      return nums.map(e => amountText({ amount: e.amount, unit: e.unit }, 1)).join(" + ");
-    };
-
-    const ul = el("ul", { class: "shop-items" });
+    const merged = mergeItems();
     const rows = [...merged.values()].sort((a, b) => a.item.localeCompare(b.item));
+    listWrap.append(el("div", { class: "shop-list__head" },
+      el("h2", { class: "shop-h" }, "Ingredients"),
+      rows.length ? el("button", { class: "chipbtn", onclick: copyList }, el("span", { html: ICON.copy }), "Copy") : null,
+      rows.length && navigator.share ? el("button", { class: "chipbtn", onclick: shareList }, el("span", { html: ICON.share }), "Share") : null));
+    if (!rows.length) { listWrap.append(el("p", { class: "empty" }, "Add a meal to build your list.")); return; }
+    const ul = el("ul", { class: "shop-items" });
     rows.forEach((rec) => {
       const key = rec.item.toLowerCase().trim();
       const have = pantry.has(key);
-      const amt = fmtMerged(rec);
       const li = el("li", { class: "shop-item" + (have ? " have" : ""), role: "button", tabindex: "0" });
       const toggle = () => { have ? pantry.delete(key) : pantry.add(key); setPantry(pantry); renderList(); };
       li.addEventListener("click", toggle);
       li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
       li.append(
         el("span", { class: "shop-item__check", html: have ? ICON.check : "" }),
-        el("span", { class: "shop-item__amt" }, amt || "\u00A0"),
+        el("span", { class: "shop-item__amt" }, fmtMerged(rec) || "\u00A0"),
         el("span", { class: "shop-item__name" }, rec.item));
       ul.append(li);
     });
     listWrap.append(ul);
-    const haveCount = rows.filter(r => pantry.has(r.item.toLowerCase().trim())).length;
+    const haveCount = rows.filter((r) => pantry.has(r.item.toLowerCase().trim())).length;
     listWrap.append(el("p", { class: "shop-hint" }, `${rows.length - haveCount} to buy \u00b7 ${haveCount} already have. Tap an item to mark it as in your cupboard.`));
   };
 
   const buildText = () => {
-    const chosen = Object.keys(sel).filter(s => bySlug[s]);
-    const merged = new Map();
-    chosen.forEach((slug) => {
-      const r = bySlug[slug];
-      const factor = r.scaleBy === "weight" ? (sel[slug] / (Number(r.weightBase) || 1000)) : (sel[slug] / (Number(r.servings) || 1));
-      (modeById(r, null).ingredients || []).forEach((ing) => {
-        if (ing._removed) return; const key = (ing.item || "").toLowerCase().trim(); if (!key) return;
-        if (!merged.has(key)) merged.set(key, { item: ing.item, entries: [] });
-        merged.get(key).entries.push(ing.amount != null ? { amount: ing.amount * factor, unit: ing.unit || "" } : { amount: null, unit: ing.unit || "" });
-      });
-    });
-    const lines = [...merged.values()]
-      .filter(rec => !pantry.has(rec.item.toLowerCase().trim()))
+    const rows = [...mergeItems().values()]
+      .filter((rec) => !pantry.has(rec.item.toLowerCase().trim()))
       .sort((a, b) => a.item.localeCompare(b.item))
-      .map((rec) => {
-        const nums = rec.entries.filter(e => e.amount != null);
-        let amt = "";
-        if (nums.length) {
-          const units = [...new Set(nums.map(e => e.unit.toLowerCase()))];
-          amt = units.length === 1 ? amountText({ amount: nums.reduce((s, e) => s + e.amount, 0), unit: nums[0].unit }, 1)
-                                   : nums.map(e => amountText({ amount: e.amount, unit: e.unit }, 1)).join(" + ");
-        }
-        return (amt ? amt + " " : "") + rec.item;
-      });
-    return "Shopping list\n" + lines.join("\n");
+      .map((rec) => { const amt = fmtMerged(rec); return (amt ? amt + " " : "") + rec.item; });
+    return "Shopping list\n" + rows.join("\n");
   };
   function copyList() {
-    const text = buildText();
-    const done = () => toast("Shopping list copied");
+    const text = buildText(); const done = () => toast("Shopping list copied");
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
     else fallbackCopy(text, done);
   }
@@ -792,10 +798,9 @@ async function renderShoppingPage() {
     copyList();
   }
 
-  renderPicker();
+  renderMeals();
   renderList();
 }
-
 /* ============================================================
    RECIPE PAGE
    ============================================================ */
@@ -938,7 +943,6 @@ async function renderRecipePage(slug, initialModeId) {
     r.subtitle ? el("p", { class: "recipe__subtitle" }, r.subtitle) : null, meta);
   const top = el("div", { class: "recipe__top" },
     el("div", { class: "recipe__topinner" },
-      el("a", { class: "backlink", href: "#/" }, el("span", { html: ICON.back }), "All recipes"),
       el("div", { class: "recipe__headrow" },
         el("div", { class: "recipe__heading" },
           el("h1", { class: "recipe__title" }, r.title),
@@ -949,6 +953,15 @@ async function renderRecipePage(slug, initialModeId) {
   const ingHead = el("div", { class: "pane__head" },
     el("h2", { class: "pane__title", id: "ingredients-heading" }, "Ingredients"));
   const ingBody = el("div", { class: "pane__body" }, ingList);
+  // temporary cups <-> ml toggle (overrides the Settings default just for this recipe)
+  if (hasVolumeUnits(r)) {
+    const vt = el("div", { class: "unit-toggle", role: "group", "aria-label": "Volume units" });
+    const paintVT = () => vt.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === effVolume()));
+    [["native", "cups"], ["ml", "ml"]].forEach(([v, l]) =>
+      vt.append(el("button", { "data-v": v, onclick: () => { volumeOverride = v; paintVT(); rerenderCook(); } }, l)));
+    ingHead.append(vt);
+    setTimeout(paintVT, 0);
+  }
   const copyBtn = el("button", { class: "pane__copy", "aria-label": "Copy unchecked ingredients", title: "Copy unchecked ingredients",
     onclick: () => copyIngredients(ingList, r.title, copyBtn), html: ICON.copy });
   const collapseBtn = el("button", { class: "pane__collapse", "aria-label": "Hide ingredients", title: "Hide ingredients",
@@ -984,12 +997,16 @@ async function renderRecipePage(slug, initialModeId) {
   /* ---- smooth collapse-on-scroll (interpolated, not a jump) ---- */
   if (cleanupScroll) { cleanupScroll(); cleanupScroll = null; }
   const RANGE = 96;         // px of scroll over which the header fully collapses
-  let natural = 0, lastT = 0, ticking = false;
+  let natural = 0, actNatural = 0, lastT = 0, ticking = false;
   const measure = () => {
     const prev = collapsible.style.height;
     collapsible.style.height = "auto";
     natural = collapsible.scrollHeight || 0;
     collapsible.style.height = prev || (natural + "px");
+    if (wide()) {
+      const ap = actions.style.height; actions.style.height = "auto";
+      actNatural = actions.scrollHeight || 0; actions.style.height = ap || (actNatural + "px");
+    }
   };
   const apply = (t) => {
     lastT = t;
@@ -997,6 +1014,14 @@ async function renderRecipePage(slug, initialModeId) {
     collapsible.style.height = (natural * (1 - t)) + "px";
     collapsible.style.opacity = String(1 - t);
     collapsible.style.pointerEvents = t > 0.6 ? "none" : "";
+    if (wide()) {                         // on tablet, the serves/nutrition/actions row folds away too
+      actions.style.overflow = "hidden";
+      actions.style.height = (actNatural * (1 - t)) + "px";
+      actions.style.opacity = String(1 - t);
+      actions.style.pointerEvents = t > 0.6 ? "none" : "";
+    } else {
+      actions.style.height = ""; actions.style.opacity = ""; actions.style.pointerEvents = ""; actions.style.overflow = "";
+    }
   };
   const readY = () => wide()
     ? Math.max(methodBody.scrollTop || 0, ingBody.scrollTop || 0)
