@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.9.0";
+const APP_VERSION = "1.10.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -85,7 +85,23 @@ const store = {
 };
 const FAV_KEY = "mise:favourites";
 const THEME_KEY = "mise:theme";
+const UNITS_KEY = "mise:units";
+const STATS_KEY = "mise:stats";
+const PANTRY_KEY = "mise:pantry";
+const SHOPPING_KEY = "mise:shopping";
+const INSTALL_DISMISS_KEY = "mise:installDismissed";
 const noteKey = (slug) => `mise:note:${slug}`;
+
+const getUnits = () => Object.assign({ amounts: "fraction", volume: "native" }, store.get(UNITS_KEY, {}));
+const setUnits = (u) => store.set(UNITS_KEY, Object.assign(getUnits(), u));
+
+const getStats = () => store.get(STATS_KEY, {});
+function bumpView(slug) {
+  const s = getStats(); const e = s[slug] || { count: 0, last: 0 };
+  e.count += 1; e.last = Date.now(); s[slug] = e; store.set(STATS_KEY, s);
+}
+const getPantry = () => new Set(store.get(PANTRY_KEY, []));
+const setPantry = (set) => store.set(PANTRY_KEY, [...set]);
 
 const getFavs = () => store.get(FAV_KEY, []);
 const isFav = (slug) => getFavs().includes(slug);
@@ -132,6 +148,10 @@ const ICON = {
   chevR:  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>',
   copy:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>',
   chevD:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  sort:   '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h12M3 12h9M3 18h6M17 6v12M17 18l3-3M17 18l-3-3"/></svg>',
+  share:  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>',
+  cook:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16M6 20V9a6 6 0 0 1 12 0v11"/><path d="M9 9a3 3 0 0 1 6 0"/></svg>',
+  cart:   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.4a1.5 1.5 0 0 0 1.5 1.2h8.2a1.5 1.5 0 0 0 1.5-1.2L22 7H6"/></svg>',
 };
 
 /* diet labels */
@@ -145,7 +165,8 @@ const round = (n, dp) => { const f = 10 ** dp; return Math.round(n * f) / f; };
 
 function formatAmount(value, unit) {
   if (value == null || isNaN(value)) return "";
-  if (FRACTION_UNITS.has((unit || "").toLowerCase())) return toFraction(value);
+  const decimals = getUnits().amounts === "decimal";
+  if (!decimals && FRACTION_UNITS.has((unit || "").toLowerCase())) return toFraction(value);
   const abs = Math.abs(value);
   if (abs >= 10) return String(Math.round(value));
   if (abs >= 1)  return String(round(value, 1));
@@ -160,12 +181,17 @@ function toFraction(value) {
   if (best) return (whole > 0 ? whole : "") + best;
   return String(round(value, 2));
 }
+const VOL_ML = { tsp: 5, tbsp: 15, cup: 250, cups: 250, fl_oz: 30, floz: 30 };
 function amountText(ing, factor) {
   if (ing.amount == null) return "";
+  const u = (ing.unit || "").toLowerCase();
+  if (getUnits().volume === "ml" && VOL_ML[u]) {
+    return `${Math.round(ing.amount * factor * VOL_ML[u])}ml`;
+  }
   const amt = formatAmount(ing.amount * factor, ing.unit);
   if (!amt) return "";
   if (ing.unit) {
-    const tight = ["g", "kg", "ml", "l"].includes(ing.unit.toLowerCase());
+    const tight = ["g", "kg", "ml", "l"].includes(u);
     return tight ? `${amt}${ing.unit}` : `${amt} ${ing.unit}`;
   }
   return amt;
@@ -281,11 +307,16 @@ function route() {
   stopAllTimers();
   closePopovers();
   if (cleanupScroll) { cleanupScroll(); cleanupScroll = null; }
+  toggleCookMode(null, false);                       // leave cook mode when navigating
+  const ib = document.getElementById("install-banner"); if (ib) ib.remove();
   const hash = location.hash.replace(/^#\/?/, "");
   const parts = hash.split("/");
   if (parts[0] === "r" && parts[1]) {
     document.body.className = "route-recipe";
     renderRecipePage(decodeURIComponent(parts[1]), parts[2] ? decodeURIComponent(parts[2]) : undefined);
+  } else if (parts[0] === "shopping") {
+    document.body.className = "route-shopping";
+    renderShoppingPage();
   } else {
     document.body.className = "route-list";
     renderListPage();
@@ -296,8 +327,8 @@ function route() {
 /* ============================================================
    LIST PAGE
    ============================================================ */
-let LIST_STATE = { recipes: [], query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set() };
-const emptyFilters = () => ({ recipes: LIST_STATE.recipes, query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set() });
+let LIST_STATE = { recipes: [], query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set(), sort: "name" };
+const emptyFilters = () => ({ recipes: LIST_STATE.recipes, query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set(), sort: LIST_STATE.sort });
 const anyFilterActive = () => LIST_STATE.query || LIST_STATE.cuisines.size || LIST_STATE.diets.size || LIST_STATE.favOnly || LIST_STATE.inc.size || LIST_STATE.exc.size;
 
 async function renderListPage() {
@@ -306,7 +337,8 @@ async function renderListPage() {
   wrap.append(el("div", { class: "list__intro" },
     el("p", { class: "eyebrow" }, SITE_NAME),
     el("h1", { class: "list__title" }, "What are we cooking?"),
-    el("p", { class: "list__lede" }, "A personal collection \u2014 every recipe scales to any number of people, adapts to diets, and runs its own step timers while you cook.")
+    el("p", { class: "list__lede" }, "A personal collection \u2014 every recipe scales to any number of people, adapts to diets, and runs its own step timers while you cook."),
+    el("a", { class: "chipbtn primary intro-shop", href: "#/shopping" }, el("span", { html: ICON.cart }), "Make a shopping list")
   ));
   const controls = el("div", { class: "controls" });
   const grid = el("div", { class: "grid" });
@@ -351,7 +383,20 @@ function buildControls(controls, grid) {
   const favBtn = el("button", { class: "pill fav", "aria-pressed": String(LIST_STATE.favOnly),
     onclick: () => { LIST_STATE.favOnly = !LIST_STATE.favOnly; buildControls(controls, grid); renderCards(grid); } },
     el("span", { html: LIST_STATE.favOnly ? ICON.starF : ICON.starO }), "Favourites");
-  const row1 = el("div", { class: "controls__row" }, search, favBtn);
+
+  const SORTS = [["name", "Name (A\u2013Z)"], ["quickest", "Quickest"], ["most", "Most viewed"], ["recent", "Recently viewed"]];
+  const sortLbl = () => (SORTS.find((s) => s[0] === LIST_STATE.sort) || SORTS[0])[1];
+  const sortBtn = el("button", { class: "pill dropdown-btn", "data-poptrigger": "1", title: "Sort recipes" },
+    el("span", { class: "chev", html: ICON.sort }), el("span", { class: "sort-lbl" }, sortLbl()), el("span", { class: "chev", html: ICON.chevD }));
+  sortBtn.addEventListener("click", () => toggleMenu(sortBtn, "sort", () => openFilterMenu(sortBtn, {
+    id: "sort", title: "Sort by", kind: "radio", grid,
+    items: SORTS.map(([v, l]) => ({ value: v, label: l })),
+    stateOf: (v) => LIST_STATE.sort === v,
+    onToggle: (v) => { LIST_STATE.sort = v; },
+    onChange: () => { sortBtn.querySelector(".sort-lbl").textContent = sortLbl(); closePopovers(); },
+  })));
+
+  const row1 = el("div", { class: "controls__row" }, search, favBtn, sortBtn);
 
   const filterbar = el("div", { class: "filterbar" });
   const clearBtn = el("button", { class: "filter-clear", hidden: !anyFilterActive(),
@@ -522,7 +567,15 @@ function renderCards(grid) {
     grid.append(el("p", { class: "empty" }, el("strong", {}, "Nothing matches. "), "Try loosening the filters."));
     return;
   }
-  list.sort((a, b) => a.r.title.localeCompare(b.r.title));
+  const stats = getStats();
+  const cmpName = (a, b) => a.r.title.localeCompare(b.r.title);
+  const sorters = {
+    name: cmpName,
+    quickest: (a, b) => ((a.r.totalTime || 1e9) - (b.r.totalTime || 1e9)) || cmpName(a, b),
+    most: (a, b) => (((stats[b.r.slug] || {}).count || 0) - ((stats[a.r.slug] || {}).count || 0)) || cmpName(a, b),
+    recent: (a, b) => (((stats[b.r.slug] || {}).last || 0) - ((stats[a.r.slug] || {}).last || 0)) || cmpName(a, b),
+  };
+  list.sort(sorters[LIST_STATE.sort] || cmpName);
   list.forEach(({ r, modeId }) => grid.append(recipeCard(r, modeId)));
 }
 
@@ -585,6 +638,165 @@ const truncate = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + "\u2026"
 
 /* ---------- ingredient include/exclude filter popover ---------- */
 /* ============================================================
+   SHOPPING LIST PAGE  (#/shopping)
+   Pick recipes (each with its own servings), merge ingredients,
+   tick off what you already have, then copy/share the rest.
+   ============================================================ */
+async function renderShoppingPage() {
+  clear(view);
+  view.append(el("p", { class: "loading-msg" }, "Loading\u2026"));
+  let slugs;
+  try { slugs = await loadManifest(); } catch (e) { slugs = []; }
+  const loaded = await Promise.allSettled(slugs.map(loadRecipe));
+  const recipes = loaded.filter(r => r.status === "fulfilled").map(r => r.value);
+  const bySlug = Object.fromEntries(recipes.map(r => [r.slug, r]));
+
+  const sel = store.get(SHOPPING_KEY, {});          // { slug: servings }
+  const pantry = getPantry();                        // Set of ticked item names
+
+  clear(view);
+  const page = el("section", { class: "shopping" });
+  page.append(el("div", { class: "shopping__top" },
+    el("a", { class: "backlink", href: "#/" }, el("span", { html: ICON.back }), "All recipes"),
+    el("h1", { class: "shopping__title" }, "Shopping list")));
+
+  const pickWrap = el("div", { class: "shop-picker" });
+  const listWrap = el("div", { class: "shop-list" });
+  page.append(el("div", { class: "shopping__grid" }, pickWrap, listWrap));
+  view.append(page);
+
+  const saveSel = () => store.set(SHOPPING_KEY, sel);
+
+  const renderPicker = () => {
+    clear(pickWrap);
+    pickWrap.append(el("h2", { class: "shop-h" }, "Recipes"));
+    if (!recipes.length) { pickWrap.append(el("p", { class: "empty" }, "No recipes found.")); return; }
+    recipes.slice().sort((a, b) => a.title.localeCompare(b.title)).forEach((r) => {
+      const on = r.slug in sel;
+      const row = el("div", { class: "shop-pick" + (on ? " on" : "") });
+      const check = el("button", { class: "shop-pick__check", "aria-label": on ? "Remove" : "Add",
+        onclick: () => { if (r.slug in sel) delete sel[r.slug]; else sel[r.slug] = Number(r.servings) || (r.scaleBy === "weight" ? (Number(r.weightBase) || 1000) : 2); saveSel(); renderPicker(); renderList(); },
+        html: on ? ICON.check : "" });
+      const label = el("div", { class: "shop-pick__label" }, r.title,
+        r.scaleBy === "weight" ? el("span", { class: "shop-pick__sub" }, "by weight (g)") : null);
+      const stepper = el("div", { class: "shop-pick__qty" });
+      if (on) {
+        const val = el("span", { class: "shop-pick__val" }, String(sel[r.slug]));
+        const step = r.scaleBy === "weight" ? (Number(r.weightStep) || 100) : 1;
+        const dec = el("button", { class: "mini", "aria-label": "less", onclick: () => { sel[r.slug] = Math.max(step, (sel[r.slug] || step) - step); val.textContent = String(sel[r.slug]); saveSel(); renderList(); } }, "\u2013");
+        const inc = el("button", { class: "mini", "aria-label": "more", onclick: () => { sel[r.slug] = (sel[r.slug] || 0) + step; val.textContent = String(sel[r.slug]); saveSel(); renderList(); } }, "+");
+        stepper.append(dec, val, inc, el("span", { class: "shop-pick__unit" }, r.scaleBy === "weight" ? "g" : (r.servingsNoun || "srv")));
+      }
+      row.append(check, label, stepper);
+      pickWrap.append(row);
+    });
+  };
+
+  const renderList = () => {
+    clear(listWrap);
+    const chosen = Object.keys(sel).filter(s => bySlug[s]);
+    listWrap.append(el("div", { class: "shop-list__head" },
+      el("h2", { class: "shop-h" }, "Your list"),
+      chosen.length ? el("button", { class: "chipbtn", onclick: copyList }, el("span", { html: ICON.copy }), "Copy") : null,
+      chosen.length && navigator.share ? el("button", { class: "chipbtn", onclick: shareList }, el("span", { html: ICON.share }), "Share") : null));
+
+    if (!chosen.length) { listWrap.append(el("p", { class: "empty" }, "Pick some recipes to build your list.")); return; }
+
+    // merge ingredients across chosen recipes
+    const merged = new Map();  // key: item(lower) -> { item, entries:[{amount,unit}], hasNull }
+    chosen.forEach((slug) => {
+      const r = bySlug[slug];
+      const factor = r.scaleBy === "weight" ? (sel[slug] / (Number(r.weightBase) || 1000)) : (sel[slug] / (Number(r.servings) || 1));
+      const mode = modeById(r, null);
+      (mode.ingredients || []).forEach((ing) => {
+        if (ing._removed) return;
+        const key = (ing.item || "").toLowerCase().trim();
+        if (!key) return;
+        if (!merged.has(key)) merged.set(key, { item: ing.item, entries: [], any: false });
+        const rec = merged.get(key);
+        rec.any = true;
+        if (ing.amount != null) rec.entries.push({ amount: ing.amount * factor, unit: (ing.unit || "") });
+        else rec.entries.push({ amount: null, unit: (ing.unit || "") });
+      });
+    });
+
+    const fmtMerged = (rec) => {
+      const nums = rec.entries.filter(e => e.amount != null);
+      if (!nums.length) return "";
+      const units = [...new Set(nums.map(e => e.unit.toLowerCase()))];
+      if (units.length === 1) {
+        const total = nums.reduce((s, e) => s + e.amount, 0);
+        return amountText({ amount: total, unit: nums[0].unit }, 1);
+      }
+      // mixed units: show each amount joined
+      return nums.map(e => amountText({ amount: e.amount, unit: e.unit }, 1)).join(" + ");
+    };
+
+    const ul = el("ul", { class: "shop-items" });
+    const rows = [...merged.values()].sort((a, b) => a.item.localeCompare(b.item));
+    rows.forEach((rec) => {
+      const key = rec.item.toLowerCase().trim();
+      const have = pantry.has(key);
+      const amt = fmtMerged(rec);
+      const li = el("li", { class: "shop-item" + (have ? " have" : ""), role: "button", tabindex: "0" });
+      const toggle = () => { have ? pantry.delete(key) : pantry.add(key); setPantry(pantry); renderList(); };
+      li.addEventListener("click", toggle);
+      li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+      li.append(
+        el("span", { class: "shop-item__check", html: have ? ICON.check : "" }),
+        el("span", { class: "shop-item__amt" }, amt || "\u00A0"),
+        el("span", { class: "shop-item__name" }, rec.item));
+      ul.append(li);
+    });
+    listWrap.append(ul);
+    const haveCount = rows.filter(r => pantry.has(r.item.toLowerCase().trim())).length;
+    listWrap.append(el("p", { class: "shop-hint" }, `${rows.length - haveCount} to buy \u00b7 ${haveCount} already have. Tap an item to mark it as in your cupboard.`));
+  };
+
+  const buildText = () => {
+    const chosen = Object.keys(sel).filter(s => bySlug[s]);
+    const merged = new Map();
+    chosen.forEach((slug) => {
+      const r = bySlug[slug];
+      const factor = r.scaleBy === "weight" ? (sel[slug] / (Number(r.weightBase) || 1000)) : (sel[slug] / (Number(r.servings) || 1));
+      (modeById(r, null).ingredients || []).forEach((ing) => {
+        if (ing._removed) return; const key = (ing.item || "").toLowerCase().trim(); if (!key) return;
+        if (!merged.has(key)) merged.set(key, { item: ing.item, entries: [] });
+        merged.get(key).entries.push(ing.amount != null ? { amount: ing.amount * factor, unit: ing.unit || "" } : { amount: null, unit: ing.unit || "" });
+      });
+    });
+    const lines = [...merged.values()]
+      .filter(rec => !pantry.has(rec.item.toLowerCase().trim()))
+      .sort((a, b) => a.item.localeCompare(b.item))
+      .map((rec) => {
+        const nums = rec.entries.filter(e => e.amount != null);
+        let amt = "";
+        if (nums.length) {
+          const units = [...new Set(nums.map(e => e.unit.toLowerCase()))];
+          amt = units.length === 1 ? amountText({ amount: nums.reduce((s, e) => s + e.amount, 0), unit: nums[0].unit }, 1)
+                                   : nums.map(e => amountText({ amount: e.amount, unit: e.unit }, 1)).join(" + ");
+        }
+        return (amt ? amt + " " : "") + rec.item;
+      });
+    return "Shopping list\n" + lines.join("\n");
+  };
+  function copyList() {
+    const text = buildText();
+    const done = () => toast("Shopping list copied");
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    else fallbackCopy(text, done);
+  }
+  async function shareList() {
+    const text = buildText();
+    if (navigator.share) { try { await navigator.share({ title: "Shopping list", text }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+    copyList();
+  }
+
+  renderPicker();
+  renderList();
+}
+
+/* ============================================================
    RECIPE PAGE
    ============================================================ */
 let cleanupScroll = null;
@@ -604,6 +816,7 @@ async function renderRecipePage(slug, initialModeId) {
   }
 
   document.title = `${r.title} \u2014 ${SITE_NAME}`;
+  bumpView(r.slug);
   const modes = recipeModes(r);
   let modeId = modes.some(m => m.id === initialModeId) ? initialModeId : null;
 
@@ -693,6 +906,12 @@ async function renderRecipePage(slug, initialModeId) {
 
   if (r.nutrition) actions.append(el("button", { class: "chipbtn", onclick: () => openNutrition(r) },
     el("span", { html: ICON.chart }), "Nutrition"));
+
+  actions.append(el("button", { class: "chipbtn", onclick: () => shareRecipe(r) },
+    el("span", { html: ICON.share }), "Share"));
+
+  actions.append(el("button", { class: "chipbtn", onclick: () => toggleCookMode(page, true) },
+    el("span", { html: ICON.cook }), "Cook mode"));
 
   // dietary mode selector
   if (modes.length > 1) {
@@ -803,6 +1022,7 @@ async function renderRecipePage(slug, initialModeId) {
 
   // measure after layout settles, then set initial state
   requestAnimationFrame(() => { measure(); apply(0); });
+  setTimeout(maybeShowInstallBanner, 600);   // gentle nudge for people arriving via a shared link
 }
 
 /* treat empty / "null" / "undefined" note values as no note */
@@ -880,6 +1100,8 @@ function renderSteps(listEl, recipe, mode, state) {
       let seconds = (Number(step.timer.minutes) || 0) * 60 + (Number(step.timer.seconds) || 0);
       if (step.timer.perWeight && state.kind === "weight") {
         seconds = timerMinutesForWeight(step.timer.perWeight, state.weightG) * 60;
+      } else if (step.timer.scale) {
+        seconds = Math.max(1, Math.round(seconds * scaleFactor(state)));  // opt-in: time grows with the batch
       }
       if (seconds > 0) body.append(buildTimer(seconds, step.timer.label || `Step ${n}`));
     }
@@ -1067,9 +1289,90 @@ function openSettings() {
       el("div", { class: "setting__sub" }, `${favs.length} saved on this device.`)),
     el("button", { class: "chipbtn", onclick: (e) => { if (confirm("Clear all favourites?")) { store.set(FAV_KEY, []); e.target.textContent = "Cleared"; } } }, "Clear")));
 
+  // Amounts: fractions vs decimals
+  const amtSeg = el("div", { class: "seg", role: "group", "aria-label": "Amounts" });
+  [["fraction", "Fractions"], ["decimal", "Decimals"]].forEach(([v, l]) =>
+    amtSeg.append(el("button", { "data-v": v, onclick: () => { setUnits({ amounts: v }); paintUnits(); reRenderForUnits(); } }, l)));
+  panel.append(el("div", { class: "setting" },
+    el("div", {}, el("div", { class: "setting__label" }, "Amounts"),
+      el("div", { class: "setting__sub" }, "Show quantities as \u00bd or 0.5.")),
+    amtSeg));
+
+  // Volume: native vs ml
+  const volSeg = el("div", { class: "seg", role: "group", "aria-label": "Volumes" });
+  [["native", "Cups/tbsp"], ["ml", "ml"]].forEach(([v, l]) =>
+    volSeg.append(el("button", { "data-v": v, onclick: () => { setUnits({ volume: v }); paintUnits(); reRenderForUnits(); } }, l)));
+  panel.append(el("div", { class: "setting" },
+    el("div", {}, el("div", { class: "setting__label" }, "Volumes"),
+      el("div", { class: "setting__sub" }, "Convert tsp/tbsp/cups to millilitres.")),
+    volSeg));
+
+  const paintUnits = () => {
+    const u = getUnits();
+    amtSeg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === u.amounts));
+    volSeg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === u.volume));
+  };
+
+  // Backup: export / import
+  const importInput = el("input", { type: "file", accept: "application/json,.json", style: "display:none",
+    onchange: (e) => { const f = e.target.files[0]; if (f) importData(f); } });
+  panel.append(el("div", { class: "setting" },
+    el("div", {}, el("div", { class: "setting__label" }, "Backup"),
+      el("div", { class: "setting__sub" }, "Save or restore favourites, notes & settings.")),
+    el("div", { class: "setting__btns" },
+      el("button", { class: "chipbtn", onclick: exportData }, "Export"),
+      el("button", { class: "chipbtn", onclick: () => importInput.click() }, "Import"),
+      importInput)));
+
   panel.append(el("p", { class: "nut-note" }, "Favourites, notes and appearance are stored on this device only."));
   panel.append(el("p", { class: "nut-note", style: "margin-top:6px; font-family:var(--mono); letter-spacing:.04em;" }, `${SITE_NAME} v${APP_VERSION}`));
-  setTimeout(paint, 0);
+  setTimeout(() => { paint(); paintUnits(); }, 0);
+}
+
+// re-render whatever's on screen so unit changes show immediately
+function reRenderForUnits() { route(); }
+
+/* ---------- backup: export / import ---------- */
+function collectData() {
+  const data = { _mise: APP_VERSION, exportedAt: new Date().toISOString(), keys: {} };
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("mise:")) data.keys[k] = localStorage.getItem(k);
+    }
+  } catch (e) {}
+  return data;
+}
+function exportData() {
+  try {
+    const blob = new Blob([JSON.stringify(collectData(), null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = el("a", { href: url, download: `mise-backup-${new Date().toISOString().slice(0, 10)}.json` });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast("Backup downloaded");
+  } catch (e) { toast("Couldn't export"); }
+}
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const keys = data && data.keys;
+      if (!keys || typeof keys !== "object") throw new Error("bad file");
+      // merge: favourites union; notes/others overwrite; keep existing where import absent
+      Object.entries(keys).forEach(([k, v]) => {
+        if (k === FAV_KEY) {
+          try { const cur = new Set(getFavs()); JSON.parse(v).forEach(s => cur.add(s)); localStorage.setItem(k, JSON.stringify([...cur])); return; } catch (e) {}
+        }
+        try { localStorage.setItem(k, v); } catch (e) {}
+      });
+      applyTheme();
+      toast("Backup restored");
+      route();
+    } catch (e) { toast("That file didn't look like a Mise backup"); }
+  };
+  reader.readAsText(file);
 }
 
 /* theme application (resolves "system") */
@@ -1143,7 +1446,7 @@ function copyIngredients(listEl, title, btn) {
   const lines = [...listEl.querySelectorAll(".ing__row:not(.done):not(.removed)")]
     .map((r) => r.dataset.copy).filter(Boolean);
   if (!lines.length) { toast("Nothing to copy \u2014 all ticked off"); return; }
-  const text = (title ? title + "\n" : "") + lines.map((l) => "\u2610 " + l).join("\n");
+  const text = (title ? title + "\n" : "") + lines.join("\n");
   const done = () => toast(`Copied ${lines.length} item${lines.length > 1 ? "s" : ""}`);
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
@@ -1165,6 +1468,67 @@ function toast(msg) {
   t.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ---------- cook mode (bigger text + keep screen awake) ---------- */
+let wakeLock = null;
+async function acquireWakeLock() {
+  try { if ("wakeLock" in navigator) { wakeLock = await navigator.wakeLock.request("screen"); } } catch (e) { /* ignore */ }
+}
+function releaseWakeLock() { try { if (wakeLock) { wakeLock.release(); wakeLock = null; } } catch (e) {} }
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && document.body.classList.contains("cooking")) acquireWakeLock();
+});
+function toggleCookMode(page, on) {
+  document.body.classList.toggle("cooking", on);
+  if (on) {
+    acquireWakeLock();
+    if (!document.getElementById("cook-exit")) {
+      const bar = el("div", { id: "cook-exit", class: "cook-exit" },
+        el("span", {}, "Cook mode \u00b7 screen stays awake"),
+        el("button", { class: "chipbtn", onclick: () => toggleCookMode(page, false) }, "Exit"));
+      document.body.append(bar);
+    }
+  } else {
+    releaseWakeLock();
+    const bar = document.getElementById("cook-exit"); if (bar) bar.remove();
+  }
+}
+
+/* ---------- share a recipe ---------- */
+function recipeUrl(slug) {
+  const base = location.href.split("#")[0];
+  return `${base}#/r/${slug}`;
+}
+async function shareRecipe(r) {
+  const url = recipeUrl(r.slug);
+  const data = { title: r.title, text: `${r.title} \u2014 on Mise`, url };
+  if (navigator.share) { try { await navigator.share(data); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+  const done = () => toast("Link copied");
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done).catch(() => fallbackCopy(url, done));
+  else fallbackCopy(url, done);
+}
+
+/* ---------- install banner for people arriving via a shared link ---------- */
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredInstall = e; });
+function maybeShowInstallBanner() {
+  if (store.get(INSTALL_DISMISS_KEY, false)) return;
+  const standalone = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  if (standalone) return;
+  if (document.getElementById("install-banner")) return;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const action = el("button", { class: "chipbtn primary", onclick: async () => {
+    if (deferredInstall) { deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch (e) {} deferredInstall = null; dismiss(); }
+    else toast(isIOS ? "Tap Share, then \u201CAdd to Home Screen\u201D" : "Use your browser menu \u2192 Install");
+  } }, "Add to home screen");
+  const dismiss = () => { store.set(INSTALL_DISMISS_KEY, true); const b = document.getElementById("install-banner"); if (b) b.remove(); };
+  const banner = el("div", { id: "install-banner", class: "install-banner" },
+    el("span", { class: "brand__mark", "aria-hidden": "true", html: '<svg viewBox="0 0 32 32" width="22" height="22"><rect width="32" height="32" rx="7" fill="#33512f"/><path d="M7 15h18v6a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4z" fill="#f5f1e8"/><rect x="4" y="13" width="24" height="2.4" rx="1.2" fill="#f5f1e8"/></svg>' }),
+    el("div", { class: "install-banner__txt" }, el("b", {}, "Install Mise"), el("span", {}, "Add it to your home screen for quick, offline access.")),
+    action,
+    el("button", { class: "install-banner__x", "aria-label": "Dismiss", onclick: dismiss }, "\u00D7"));
+  document.body.append(banner);
 }
 
 function buildTimer(totalSeconds, label) {
