@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.11.0";
+const APP_VERSION = "1.12.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -844,6 +844,7 @@ async function renderRecipePage(slug, initialModeId) {
     const mode = modeById(r, state.modeId);
     renderIngredients(ingList, mode, state);
     renderSteps(stepsWrap, r, mode, state);
+    if (typeof engBody !== "undefined") renderEngineering(engBody, r, mode, state);
   };
 
   /* ---- scaler (servings or weight) ---- */
@@ -950,8 +951,10 @@ async function renderRecipePage(slug, initialModeId) {
         actions)));
 
   /* ---- panes ---- */
-  const ingHead = el("div", { class: "pane__head" },
-    el("h2", { class: "pane__title", id: "ingredients-heading" }, "Ingredients"));
+  const ingTitle = el("h2", { class: "pane__title", id: "ingredients-heading" }, "Ingredients");
+  const ingRule = el("span", { class: "pane__rule", "aria-hidden": "true" });
+  const ingTools = el("div", { class: "pane__tools" });
+  const ingHead = el("div", { class: "pane__head" }, ingTitle, ingRule, ingTools);
   const ingBody = el("div", { class: "pane__body" }, ingList);
   // temporary cups <-> ml toggle (overrides the Settings default just for this recipe)
   if (hasVolumeUnits(r)) {
@@ -959,19 +962,19 @@ async function renderRecipePage(slug, initialModeId) {
     const paintVT = () => vt.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.v === effVolume()));
     [["native", "cups"], ["ml", "ml"]].forEach(([v, l]) =>
       vt.append(el("button", { "data-v": v, onclick: () => { volumeOverride = v; paintVT(); rerenderCook(); } }, l)));
-    ingHead.append(vt);
+    ingTools.append(vt);
     setTimeout(paintVT, 0);
   }
   const copyBtn = el("button", { class: "pane__copy", "aria-label": "Copy unchecked ingredients", title: "Copy unchecked ingredients",
     onclick: () => copyIngredients(ingList, r.title, copyBtn), html: ICON.copy });
   const collapseBtn = el("button", { class: "pane__collapse", "aria-label": "Hide ingredients", title: "Hide ingredients",
     html: ICON.chevL });
-  ingHead.append(copyBtn, collapseBtn);
+  ingTools.append(copyBtn, collapseBtn);
   const ingPane = el("div", { class: "pane pane--ingredients" }, ingHead, ingBody);
 
   const methodBody = el("div", { class: "pane__body" }, stepsWrap);
   const methodPane = el("div", { class: "pane pane--method" },
-    el("div", { class: "pane__head" }, el("h2", { class: "pane__title" }, "Method")), methodBody);
+    el("div", { class: "pane__head" }, el("h2", { class: "pane__title" }, "Method"), el("span", { class: "pane__rule", "aria-hidden": "true" })), methodBody);
 
   const cook = el("div", { class: "cook" }, ingPane, methodPane);
 
@@ -983,11 +986,14 @@ async function renderRecipePage(slug, initialModeId) {
 
   page.append(top, cook);
 
-  /* ---- tips + notes (extra) ---- */
+  /* ---- tips + notes (extra) + engineering view ---- */
   const extra = buildExtra(r);
+  const engWrap = el("details", { class: "eng" }, el("summary", { class: "eng__summary" }, "Engineering view"));
+  const engBody = el("div", { class: "eng__body" });
+  engWrap.append(engBody);
   // On wide screens tips/notes scroll with the method pane; on narrow they go under the page.
   const bodyRegion = el("div", { class: "recipe__body" });
-  if (wide()) methodBody.append(extra); else { bodyRegion.append(extra); }
+  if (wide()) methodBody.append(extra, engWrap); else { bodyRegion.append(extra, engWrap); }
   page.append(bodyRegion);
 
   view.append(page);
@@ -1173,6 +1179,117 @@ function showQtyPopover(anchor, ing, factor) {
 }
 
 /* ---------- tips + user notes ---------- */
+/* ============================================================
+   ENGINEERING VIEW  (Cooking-for-Engineers style table)
+   Ingredients on the left; operations as bracketed cells flowing right.
+   Uses an explicit recipe.flow when present, else derives a linear flow
+   from the steps + {{tokens}}.
+   ============================================================ */
+function stepText(step, mode) {
+  return (mode.id && step.textByVariant && Object.prototype.hasOwnProperty.call(step.textByVariant, mode.id))
+    ? step.textByVariant[mode.id] : (step.text || "");
+}
+function shortOp(step, mode) {
+  if (step.timer && step.timer.label) return step.timer.label;
+  let t = String(stepText(step, mode)).replace(/\{\{([^}]+)\}\}/g, (m, id) => {
+    const ing = (mode.ingredients || []).find((x) => x.id === id.trim()); return ing ? ing.item : "";
+  }).replace(/\s+/g, " ").trim();
+  const clause = t.split(/[,.;:]/)[0].trim();
+  return clause.length > 30 ? clause.slice(0, 28).trim() + "\u2026" : (clause || "step");
+}
+function deriveFlow(recipe, mode) {
+  const ings = (mode.ingredients || []).filter((i) => i.id && !i._removed);
+  const ingIds = new Set(ings.map((i) => i.id));
+  const steps = (recipe.steps || []).filter((s) => String(stepText(s, mode)).trim() !== "");
+  if (!steps.length || !ings.length) return null;
+  const allText = steps.map((s) => stepText(s, mode)).join(" ");
+  const used = new Set(); const nodes = []; let prev = null; let k = 0;
+  steps.forEach((step, idx) => {
+    const toks = [...String(stepText(step, mode)).matchAll(/\{\{([^}]+)\}\}/g)].map((m) => m[1].trim()).filter((id) => ingIds.has(id));
+    let news = toks.filter((id) => !used.has(id)); news.forEach((id) => used.add(id));
+    if (idx === 0) { // pull in any ingredients that are never referenced by a token
+      ings.map((i) => i.id).filter((id) => !allText.includes("{{" + id + "}}") && !used.has(id)).forEach((id) => { news.push(id); used.add(id); });
+    }
+    const inputs = [...(prev ? [prev] : []), ...news];
+    if (!inputs.length) return; // nothing to operate on yet
+    const id = "op" + (k++);
+    nodes.push({ id, op: shortOp(step, mode), in: inputs });
+    prev = id;
+  });
+  return nodes.length ? nodes : null;
+}
+function layoutFlow(nodes, mode) {
+  const ingById = {}; (mode.ingredients || []).forEach((i) => { if (i.id) ingById[i.id] = i; });
+  const nodeById = {}; nodes.forEach((n) => { nodeById[n.id] = n; });
+  const referenced = new Set(); nodes.forEach((n) => (n.in || []).forEach((x) => referenced.add(x)));
+  const roots = nodes.filter((n) => !referenced.has(n.id));
+  const root = (roots.length ? roots : [nodes[nodes.length - 1]])[roots.length ? roots.length - 1 : 0];
+
+  const leafRow = {}; const order = []; const seen = new Set();
+  (function dfs(id) {
+    if (nodeById[id]) { if (seen.has(id)) return; seen.add(id); (nodeById[id].in || []).forEach(dfs); }
+    else if (ingById[id] && !(id in leafRow)) { leafRow[id] = order.length; order.push(id); }
+  })(root.id);
+  const rows = order.length; if (!rows) return null;
+
+  const span = {}, col = {};
+  const computeSpan = (id) => {
+    if (id in span) return span[id];
+    if (nodeById[id]) { let r0 = Infinity, r1 = -Infinity; (nodeById[id].in || []).forEach((x) => { const s = computeSpan(x); if (s) { r0 = Math.min(r0, s[0]); r1 = Math.max(r1, s[1]); } }); return span[id] = [r0, r1]; }
+    const r = leafRow[id]; return span[id] = (r == null ? null : [r, r]);
+  };
+  const computeCol = (id) => {
+    if (id in col) return col[id];
+    if (nodeById[id]) { let c = 1; (nodeById[id].in || []).forEach((x) => { c = Math.max(c, computeCol(x) + 1); }); return col[id] = c; }
+    return col[id] = 0;
+  };
+  nodes.forEach((n) => { computeSpan(n.id); computeCol(n.id); });
+  const cols = Math.max(1, ...nodes.map((n) => col[n.id])) + 1;
+
+  const OCC = "\u0000";
+  const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
+  order.forEach((id, r) => { grid[r][0] = { kind: "ing", id }; });
+  nodes.forEach((n) => {
+    const s = span[n.id]; if (!s || s[0] === Infinity) return;
+    const c = col[n.id];
+    if (grid[s[0]][c] === null) { grid[s[0]][c] = { kind: "op", node: n, rowspan: s[1] - s[0] + 1 }; for (let r = s[0] + 1; r <= s[1]; r++) grid[r][c] = OCC; }
+  });
+  return { grid, rows, cols, ingById, OCC };
+}
+function renderEngineering(container, recipe, mode, state) {
+  clear(container);
+  const nodes = Array.isArray(recipe.flow) && recipe.flow.length ? recipe.flow.map((n, i) => ({ id: n.id || ("op" + i), op: n.op || n.label || "step", in: n.in || n.inputs || [] })) : deriveFlow(recipe, mode);
+  if (!nodes) { container.append(el("p", { class: "eng__empty" }, "No engineering view for this recipe yet.")); return; }
+  const L = layoutFlow(nodes, mode); if (!L) { container.append(el("p", { class: "eng__empty" }, "No engineering view for this recipe yet.")); return; }
+  const factor = scaleFactor(state);
+
+  const table = el("table", { class: "eng-table" });
+  for (let r = 0; r < L.rows; r++) {
+    const tr = el("tr", {});
+    for (let c = 0; c < L.cols; c++) {
+      const cell = L.grid[r][c];
+      if (cell === L.OCC) continue;
+      if (cell === null) { tr.append(el("td", { class: "eng-blank" })); continue; }
+      if (cell.kind === "ing") {
+        const ing = L.ingById[cell.id] || { item: cell.id };
+        const amt = amountText(ing, factor); const gb = gramsBracket(ing, factor);
+        tr.append(el("td", { class: "eng-ing" },
+          amt ? el("span", { class: "eng-ing__amt" }, amt + (gb ? ` (${gb})` : "") + " ") : null,
+          el("span", { class: "eng-ing__name" }, ing.item)));
+      } else {
+        const tall = cell.rowspan >= 2;
+        tr.append(el("td", { class: "eng-op" + (tall ? " eng-op--tall" : ""), rowspan: String(cell.rowspan) },
+          el("span", { class: "eng-op__label" }, cell.node.op)));
+      }
+    }
+    table.append(tr);
+  }
+  container.append(el("div", { class: "eng__scroll" }, table));
+  if (!(Array.isArray(recipe.flow) && recipe.flow.length)) {
+    container.append(el("p", { class: "eng__note" }, "Auto-generated from the steps. Reads left\u2011to\u2011right: ingredients combine through each operation."));
+  }
+}
+
 function buildExtra(recipe) {
   const extra = el("div", { class: "extra" });
 
