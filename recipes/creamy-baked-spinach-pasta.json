@@ -38,6 +38,14 @@
     { "text": "Grease a baking dish with the {{butter}}, tip in the pasta, and scatter the {{parmesan-top}} over the top. Bake until melted and golden.", "timer": { "minutes": 15, "label": "Bake" }, "note": "180\u00b0C fan / 400\u00b0F \u2014 adjust to taste." },
     { "text": "Serve hot, with extra Parmesan at the table." }
   ],
+  "flow": [
+    { "id": "boiled", "op": "boil", "in": ["pasta"] },
+    { "id": "garlicoil", "op": "saute", "in": ["oil", "garlic"] },
+    { "id": "wilted", "op": "wilt", "in": ["garlicoil", "spinach", "salt"] },
+    { "id": "sauce", "op": "simmer", "in": ["wilted", "cream", "nutmeg", "pepper"] },
+    { "id": "mixed", "op": "combine", "in": ["sauce", "boiled", "parmesan"] },
+    { "id": "finished", "op": "bake", "in": ["mixed", "butter", "parmesan-top"] }
+  ],
   "notes": [
     "The source recipe doesn't bake \u2014 the buttered dish, Parmesan topping and 15-minute bake are our additions.",
     "Bakes at 180\u00b0C fan (about 200\u00b0C conventional / 400\u00b0F). Go hotter for a browner crust or lower for a gentler melt.",

@@ -130,6 +130,15 @@
       "text": "Plate up and top with extra black pepper and pecorino Romano."
     }
   ],
+  "flow": [
+    { "id": "browned", "op": "brown", "in": ["oil", "sausages"] },
+    { "id": "aromatic", "op": "cook", "in": ["browned", "pepper", "fennel", "garlic"] },
+    { "id": "reduced", "op": "deglaze", "in": ["aromatic", "wine"] },
+    { "id": "sauce", "op": "simmer", "in": ["reduced", "cream"] },
+    { "id": "boiled", "op": "boil", "in": ["pasta", "salt"] },
+    { "id": "combined", "op": "combine", "in": ["sauce", "boiled"] },
+    { "id": "finished", "op": "stir in", "in": ["combined", "pecorino"] }
+  ],
   "notes": [
     "The original didn't specify a pasta amount — 100g dried pasta per person is used here.",
     "Save a mug of starchy pasta water before draining; it's what pulls the sauce together.",

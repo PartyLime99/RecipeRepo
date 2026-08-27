@@ -34,6 +34,14 @@
     { "text": "Toss vigorously off the heat, adding splashes of reserved pasta water until the sauce turns glossy and clings. The residual warmth cooks the eggs into a creamy sauce — never return it to direct heat or it will scramble." },
     { "text": "Plate immediately and top with the remaining {{pecorino}} and {{pepper}}. Serve at once." }
   ],
+  "flow": [
+    { "id": "eggmix", "op": "whisk", "in": ["yolks", "egg", "pecorino", "pepper"] },
+    { "id": "crisp", "op": "render", "in": ["guanciale"] },
+    { "id": "veg", "op": "saute", "in": ["crisp", "mushrooms"] },
+    { "id": "boiled", "op": "boil", "in": ["spaghetti", "salt"] },
+    { "id": "combined", "op": "toss", "in": ["boiled", "veg"] },
+    { "id": "finished", "op": "toss off heat", "in": ["combined", "eggmix"] }
+  ],
   "notes": [
     "All the egg work happens off the heat. If the pan is too hot when the eggs go in, they'll scramble.",
     "Trim the tough rind off the guanciale before cutting, but drop it into the pan while rendering for extra flavour, then discard it before the mushrooms go in.",

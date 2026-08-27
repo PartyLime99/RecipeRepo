@@ -27,6 +27,13 @@
     { "text": "Lift out and let it rest until cool enough to handle. Unwrap and discard the foil, then peel off the paste (discard it too \u2014 it isn't for eating) and the skin.", "timer": { "minutes": 15, "label": "Rest" } },
     { "text": "While the ham is still warm \u2014 not straight from the oven, but before it goes cold \u2014 press {{breadcrumbs}} over the fat (or brush with your glaze). This is the moment that matters: warm fat is soft and tacky so the crumbs stick, whereas cold fat has set firm and they'll just slide off. If you like, flash back in the hot oven for a few minutes to set. Slice and serve." }
   ],
+  "flow": [
+    { "id": "soaked", "op": "soak 24h", "in": ["ham"] },
+    { "id": "paste", "op": "mix", "in": ["flour", "water"] },
+    { "id": "wrapped", "op": "wrap + seal", "in": ["soaked", "paste"] },
+    { "id": "baked", "op": "bake", "in": ["wrapped"] },
+    { "id": "finished", "op": "unwrap + crumb", "in": ["baked", "breadcrumbs"] }
+  ],
   "notes": [
     "The 24-hour soak assumes a traditional salted/cured ham; for a mild supermarket gammon a few hours is plenty, or skip it and just simmer-then-bake.",
     "The flour paste (a 'huff paste') isn't for eating \u2014 it traps steam so the meat stays moist. Discard it after baking.",

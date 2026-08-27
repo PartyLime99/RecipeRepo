@@ -59,6 +59,13 @@
     { "text": "Lid off. Pour in the {{cream}} and {{balsamic}}, season with salt and pepper, and stir. Simmer to thicken the sauce and finish cooking the pasta.", "timer": { "minutes": 2, "label": "Thicken the sauce" } },
     { "text": "When it's as saucy as you like and the pasta is al dente, divide between bowls and top with grated {{parmesan}} and {{chives}}." }
   ],
+  "flow": [
+    { "id": "base", "op": "fry", "in": ["oil", "onion", "garlic"] },
+    { "id": "meat", "op": "fry", "in": ["base", "chorizo"] },
+    { "id": "simmer", "op": "simmer", "in": ["meat", "paprika", "oregano", "stock", "pasta"] },
+    { "id": "sauce", "op": "thicken", "in": ["simmer", "cream", "balsamic"] },
+    { "id": "finished", "op": "top", "in": ["sauce", "parmesan", "chives"] }
+  ],
   "notes": [
     "Use good Spanish cooking chorizo (the firm, cured kind) and cube it yourself rather than buying thin slices.",
     "Roughly 100g of dried pasta per person is a good portion guide.",

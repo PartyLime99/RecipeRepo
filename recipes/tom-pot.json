@@ -75,6 +75,15 @@
     { "text": "When the {{fusilli}} is cooked, drain and add it to the sauce pot." },
     { "text": "Mix together, serve, and top with grated {{parmesan}}." }
   ],
+  "flow": [
+    { "id": "base", "op": "fry", "in": ["oil", "onion", "garlic"] },
+    { "id": "veg", "op": "cook", "in": ["base", "pepper", "aubergine", "courgette", "mushrooms"] },
+    { "id": "meat", "op": "fry", "in": ["veg", "chorizo"] },
+    { "id": "paste", "op": "cook out", "in": ["meat", "tomato-paste", "harissa"] },
+    { "id": "sauce", "op": "simmer", "in": ["paste", "tomatoes", "paprika", "mixed-herbs", "sumac", "stock-cube"] },
+    { "id": "boiled", "op": "boil", "in": ["fusilli"] },
+    { "id": "finished", "op": "combine + top", "in": ["sauce", "boiled", "parmesan"] }
+  ],
   "notes": [
     "Stock cube goes in dry and crumbled, not made up with water \u2014 it seasons the sauce directly.",
     "Roughly 100 g dried pasta per person; 500 g comfortably feeds four hungry people or five lighter portions.",

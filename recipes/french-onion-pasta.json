@@ -186,6 +186,14 @@
       }
     }
   ],
+  "flow": [
+    { "id": "caramelized", "op": "caramelize", "in": ["oil", "onions", "salt"] },
+    { "id": "meat", "op": "crisp", "in": ["caramelized", "pancetta", "garlic"] },
+    { "id": "deglazed", "op": "deglaze", "in": ["meat", "wine"] },
+    { "id": "simmered", "op": "simmer", "in": ["deglazed", "pasta", "broth", "thyme", "pepper"] },
+    { "id": "creamy", "op": "stir in", "in": ["simmered", "cream", "parmesan"] },
+    { "id": "finished", "op": "melt + torch", "in": ["creamy", "gruyere"] }
+  ],
   "notes": [
     "Quantities follow standard French onion pasta ratios — the source video doesn't show measurements, so adjust to taste.",
     "Don't rush the onions; the deep caramelization is the whole flavor base.",

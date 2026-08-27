@@ -171,6 +171,13 @@
       }
     }
   ],
+  "flow": [
+    { "id": "fried", "op": "fry", "in": ["oil", "mushrooms", "lardons"] },
+    { "id": "garlicbutter", "op": "melt", "in": ["butter-garlic", "garlic", "salt-pepper"] },
+    { "id": "sauce", "op": "reduce", "in": ["garlicbutter", "gochujang", "honey", "vinegar"] },
+    { "id": "noodles", "op": "toss", "in": ["sauce", "udon", "butter-finish", "water"] },
+    { "id": "finished", "op": "fold in + top", "in": ["noodles", "fried", "scallions"] }
+  ],
   "notes": [
     "Straight-to-wok udon needs no boiling — it goes straight into the sauce. Any udon works; cook per its packet first if using dried or frozen.",
     "For the vegetarian version, just leave the lardons out and fry the mushrooms on their own.",
