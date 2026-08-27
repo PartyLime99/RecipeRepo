@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.12.0";
+const APP_VERSION = "1.12.1";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -1246,13 +1246,27 @@ function layoutFlow(nodes, mode) {
   nodes.forEach((n) => { computeSpan(n.id); computeCol(n.id); });
   const cols = Math.max(1, ...nodes.map((n) => col[n.id])) + 1;
 
+  // each cell flows right until the operation that consumes it (fills the "waiting" whitespace)
+  const consumerCol = {};
+  [...order, ...nodes.map((n) => n.id)].forEach((id) => {
+    let cc = Infinity;
+    nodes.forEach((n) => { if ((n.in || []).includes(id)) cc = Math.min(cc, col[n.id]); });
+    consumerCol[id] = cc;
+  });
+  const colEndOf = (id) => consumerCol[id] === Infinity ? cols - 1 : consumerCol[id] - 1;
+
   const OCC = "\u0000";
   const grid = Array.from({ length: rows }, () => Array(cols).fill(null));
-  order.forEach((id, r) => { grid[r][0] = { kind: "ing", id }; });
+  const place = (r0, c0, rs, cs, cell) => {
+    if (grid[r0][c0] !== null) return;
+    grid[r0][c0] = cell;
+    for (let r = r0; r < r0 + rs; r++) for (let c = c0; c < c0 + cs; c++) { if (r === r0 && c === c0) continue; grid[r][c] = OCC; }
+  };
+  order.forEach((id, r) => { const ce = Math.max(0, colEndOf(id)); place(r, 0, 1, ce + 1, { kind: "ing", id, rowspan: 1, colspan: ce + 1 }); });
   nodes.forEach((n) => {
     const s = span[n.id]; if (!s || s[0] === Infinity) return;
-    const c = col[n.id];
-    if (grid[s[0]][c] === null) { grid[s[0]][c] = { kind: "op", node: n, rowspan: s[1] - s[0] + 1 }; for (let r = s[0] + 1; r <= s[1]; r++) grid[r][c] = OCC; }
+    const c = col[n.id], ce = Math.max(c, colEndOf(n.id));
+    place(s[0], c, s[1] - s[0] + 1, ce - c + 1, { kind: "op", node: n, rowspan: s[1] - s[0] + 1, colspan: ce - c + 1 });
   });
   return { grid, rows, cols, ingById, OCC };
 }
@@ -1268,17 +1282,19 @@ function renderEngineering(container, recipe, mode, state) {
     const tr = el("tr", {});
     for (let c = 0; c < L.cols; c++) {
       const cell = L.grid[r][c];
-      if (cell === L.OCC) continue;
-      if (cell === null) { tr.append(el("td", { class: "eng-blank" })); continue; }
+      if (cell === L.OCC || cell === null) continue;
+      const span2 = {};
+      if (cell.rowspan > 1) span2.rowspan = String(cell.rowspan);
+      if (cell.colspan > 1) span2.colspan = String(cell.colspan);
       if (cell.kind === "ing") {
         const ing = L.ingById[cell.id] || { item: cell.id };
         const amt = amountText(ing, factor); const gb = gramsBracket(ing, factor);
-        tr.append(el("td", { class: "eng-ing" },
+        tr.append(el("td", Object.assign({ class: "eng-ing" }, span2),
           amt ? el("span", { class: "eng-ing__amt" }, amt + (gb ? ` (${gb})` : "") + " ") : null,
           el("span", { class: "eng-ing__name" }, ing.item)));
       } else {
         const tall = cell.rowspan >= 2;
-        tr.append(el("td", { class: "eng-op" + (tall ? " eng-op--tall" : ""), rowspan: String(cell.rowspan) },
+        tr.append(el("td", Object.assign({ class: "eng-op" + (tall ? " eng-op--tall" : "") }, span2),
           el("span", { class: "eng-op__label" }, cell.node.op)));
       }
     }

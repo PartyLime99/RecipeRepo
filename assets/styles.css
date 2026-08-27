@@ -585,8 +585,8 @@ body.route-pick .site-header { position: sticky; }
 .eng-ing { white-space: nowrap; }
 .eng-ing__amt { font-family: var(--mono); font-weight: 700; color: var(--paprika-2); }
 .eng-ing__name { }
-.eng-op { text-align: center; background: var(--paper-2); color: var(--ink); font-weight: 600; min-width: 44px; }
+.eng-op { text-align: left; background: var(--paper-2); color: var(--ink); font-weight: 600; vertical-align: middle; }
+.eng-op--tall { text-align: center; }
 .eng-op--tall .eng-op__label { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; display: inline-block; }
-.eng-blank { border: none !important; background: transparent; }
 .eng__note { font-size: 12.5px; color: var(--ink-2); margin: 12px 2px 0; }
 .eng__empty { color: var(--ink-2); font-size: 14px; padding: 8px 4px 4px; }
