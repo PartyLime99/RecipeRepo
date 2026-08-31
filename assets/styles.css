@@ -590,3 +590,7 @@ body.route-pick .site-header { position: sticky; }
 .eng-op--tall .eng-op__label { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; display: inline-block; }
 .eng__note { font-size: 12.5px; color: var(--ink-2); margin: 12px 2px 0; }
 .eng__empty { color: var(--ink-2); font-size: 14px; padding: 8px 4px 4px; }
+
+/* size breakdown on shopping list */
+.shop-item__note { color: var(--ink-2); font-size: 13px; }
+.shop-item.have .shop-item__note { text-decoration: line-through; }

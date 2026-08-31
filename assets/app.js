@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.12.1";
+const APP_VERSION = "1.13.0";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -345,6 +345,39 @@ function addMealToShopping(r) {
   const sel = store.get(SHOPPING_KEY, {});
   if (!(r.slug in sel)) sel[r.slug] = defaultQty(r);
   store.set(SHOPPING_KEY, sel);
+}
+
+/* ---- shopping-list ingredient normalisation (size words only) ---- */
+// Only these SIZE words are stripped when merging; every other qualifier (colour,
+// variety, smoked/fresh/dried…) keeps ingredients separate. Longer phrases first.
+const SIZE_WORDS = [["extra large", "extra-large"], ["extra-large", "extra-large"], ["x-large", "extra-large"], ["xl", "extra-large"], ["large", "large"], ["medium", "medium"], ["small", "small"], ["big", "big"]];
+const SIZE_ORDER = { small: 0, medium: 1, large: 2, big: 3, "extra-large": 4 };
+function splitSize(name) {
+  const raw = (name || "").trim();
+  for (const [word, canon] of SIZE_WORDS) {
+    const re = new RegExp("^" + word.replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&") + "\\b\\s*", "i");
+    if (re.test(raw)) return { size: canon, base: raw.replace(re, "").trim() };
+  }
+  return { size: null, base: raw };
+}
+function pluralize(name, n) {
+  if (n <= 1 || !name) return name;
+  const parts = name.split(" "); let w = parts[parts.length - 1];
+  if (/[^s]$/i.test(w)) {
+    if (/[^aeiou]y$/i.test(w)) w = w.slice(0, -1) + "ies";
+    else if (/(s|sh|ch|x|z|o)$/i.test(w)) w += "es";
+    else w += "s";
+    parts[parts.length - 1] = w;
+  }
+  return parts.join(" ");
+}
+function singularize(name) {
+  const parts = (name || "").split(" "); let w = parts[parts.length - 1];
+  if (/[^aeiou]ies$/i.test(w)) w = w.slice(0, -3) + "y";
+  else if (/(ches|shes|xes|zes|ses|oes)$/i.test(w)) w = w.slice(0, -2);
+  else if (/[^s]s$/i.test(w)) w = w.slice(0, -1);
+  parts[parts.length - 1] = w;
+  return parts.join(" ");
 }
 
 async function renderListPage(opts) {
@@ -737,33 +770,57 @@ async function renderShoppingPage() {
       const r = bySlug[slug]; const factor = factorFor(r);
       (modeById(r, null).ingredients || []).forEach((ing) => {
         if (ing._removed) return;
-        const key = (ing.item || "").toLowerCase().trim(); if (!key) return;
-        if (!merged.has(key)) merged.set(key, { item: ing.item, entries: [] });
-        merged.get(key).entries.push(ing.amount != null ? { amount: ing.amount * factor, unit: ing.unit || "" } : { amount: null, unit: ing.unit || "" });
+        const parts = splitSize(ing.item || "");
+        const key = (ing.key || singularize(parts.base)).toLowerCase().trim(); if (!key) return;
+        if (!merged.has(key)) merged.set(key, { base: parts.base || ing.item, entries: [] });
+        merged.get(key).entries.push({ amount: ing.amount != null ? ing.amount * factor : null, unit: ing.unit || "", size: parts.size });
       });
     });
     return merged;
   };
-  const fmtMerged = (rec) => {
-    const nums = rec.entries.filter((e) => e.amount != null);
+  // sum entries that share a unit; returns amount text or "" (returns null if mixed units -> caller lists)
+  const sumText = (entries) => {
+    const nums = entries.filter((e) => e.amount != null);
     if (!nums.length) return "";
     const units = [...new Set(nums.map((e) => e.unit.toLowerCase()))];
     if (units.length === 1) return amountText({ amount: nums.reduce((s, e) => s + e.amount, 0), unit: nums[0].unit }, 1);
     return nums.map((e) => amountText({ amount: e.amount, unit: e.unit }, 1)).join(" + ");
   };
+  const countTotal = (entries) => {
+    const nums = entries.filter((e) => e.amount != null);
+    const units = [...new Set(nums.map((e) => e.unit.toLowerCase()))];
+    return (units.length === 1 && units[0] === "") ? nums.reduce((s, e) => s + e.amount, 0) : null; // integer count only when all unitless
+  };
+  // returns { amount, name, bracket }
+  const describe = (rec) => {
+    const amount = sumText(rec.entries);
+    const distinct = [...new Set(rec.entries.map((e) => e.size).filter(Boolean))];
+    const hasUnsized = rec.entries.some((e) => e.size == null);
+    const count = countTotal(rec.entries);
+    const core = (count != null) ? singularize(rec.base) : rec.base;   // strip plural only for counted items
+    let name;
+    if (distinct.length === 1 && !hasUnsized) name = `${distinct[0]} ${core}`;      // all one size -> keep it
+    else name = core;                                                               // mixed/unsized -> base only
+    if (count != null) name = pluralize(name, count);
+    let bracket = "";
+    if (distinct.length >= 2 && !hasUnsized) {                                        // only annotate genuine size splits
+      const sorted = distinct.slice().sort((a, b) => (SIZE_ORDER[a] ?? 9) - (SIZE_ORDER[b] ?? 9));
+      bracket = sorted.map((sz) => `${sumText(rec.entries.filter((e) => e.size === sz))} ${sz}`.trim()).join(", ");
+    }
+    return { amount, name, bracket };
+  };
 
   const renderList = () => {
     clear(listWrap);
     const merged = mergeItems();
-    const rows = [...merged.values()].sort((a, b) => a.item.localeCompare(b.item));
+    const rows = [...merged.entries()].map(([key, rec]) => ({ key, rec, d: describe(rec) })).sort((a, b) => a.d.name.localeCompare(b.d.name));
     listWrap.append(el("div", { class: "shop-list__head" },
       el("h2", { class: "shop-h" }, "Ingredients"),
       rows.length ? el("button", { class: "chipbtn", onclick: copyList }, el("span", { html: ICON.copy }), "Copy") : null,
       rows.length && navigator.share ? el("button", { class: "chipbtn", onclick: shareList }, el("span", { html: ICON.share }), "Share") : null));
     if (!rows.length) { listWrap.append(el("p", { class: "empty" }, "Add a meal to build your list.")); return; }
     const ul = el("ul", { class: "shop-items" });
-    rows.forEach((rec) => {
-      const key = rec.item.toLowerCase().trim();
+    rows.forEach(({ key, d }) => {
       const have = pantry.has(key);
       const li = el("li", { class: "shop-item" + (have ? " have" : ""), role: "button", tabindex: "0" });
       const toggle = () => { have ? pantry.delete(key) : pantry.add(key); setPantry(pantry); renderList(); };
@@ -771,20 +828,22 @@ async function renderShoppingPage() {
       li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
       li.append(
         el("span", { class: "shop-item__check", html: have ? ICON.check : "" }),
-        el("span", { class: "shop-item__amt" }, fmtMerged(rec) || "\u00A0"),
-        el("span", { class: "shop-item__name" }, rec.item));
+        el("span", { class: "shop-item__amt" }, d.amount || "\u00A0"),
+        el("span", { class: "shop-item__name" }, d.name,
+          d.bracket ? el("span", { class: "shop-item__note" }, ` (${d.bracket})`) : null));
       ul.append(li);
     });
     listWrap.append(ul);
-    const haveCount = rows.filter((r) => pantry.has(r.item.toLowerCase().trim())).length;
+    const haveCount = rows.filter((r) => pantry.has(r.key)).length;
     listWrap.append(el("p", { class: "shop-hint" }, `${rows.length - haveCount} to buy \u00b7 ${haveCount} already have. Tap an item to mark it as in your cupboard.`));
   };
 
   const buildText = () => {
-    const rows = [...mergeItems().values()]
-      .filter((rec) => !pantry.has(rec.item.toLowerCase().trim()))
-      .sort((a, b) => a.item.localeCompare(b.item))
-      .map((rec) => { const amt = fmtMerged(rec); return (amt ? amt + " " : "") + rec.item; });
+    const rows = [...mergeItems().entries()]
+      .filter(([key]) => !pantry.has(key))
+      .map(([, rec]) => describe(rec))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((d) => (d.amount ? d.amount + " " : "") + d.name + (d.bracket ? ` (${d.bracket})` : ""));
     return "Shopping list\n" + rows.join("\n");
   };
   function copyList() {
