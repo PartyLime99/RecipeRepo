@@ -1,6 +1,6 @@
 /* Mise — service worker
    Bump CACHE_VERSION whenever you change the app shell (html/css/js/icons). */
-const CACHE_VERSION = "mise-v17";
+const CACHE_VERSION = "mise-v18";
 const CORE = [
   ".",
   "index.html",
