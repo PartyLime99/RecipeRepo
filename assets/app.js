@@ -6,7 +6,7 @@
 const view = document.getElementById("view");
 const RECIPES_DIR = "recipes";
 const SITE_NAME = "Mise";
-const APP_VERSION = "1.13.0";
+const APP_VERSION = "1.13.1";
 
 /* Recipe discovery.
    On GitHub Pages we can list the recipes/ folder via the GitHub API, so you
@@ -1749,7 +1749,7 @@ function maybeShowInstallBanner() {
 }
 
 function buildTimer(totalSeconds, label) {
-  let remaining = totalSeconds, iv = null, ringIv = null, statusName = "idle";
+  let remaining = totalSeconds, endAt = 0, iv = null, ringIv = null, statusName = "idle";
   const readout = el("span", { class: "timer__readout" }, fmt(remaining));
   const labelEl = el("span", { class: "timer__label" }, label);
   const barFill = el("i");
@@ -1758,13 +1758,19 @@ function buildTimer(totalSeconds, label) {
   const resetBtn = el("button", { class: "timer__btn ghost", "aria-label": "Reset timer", html: ICON.reset, hidden: true });
   const card = el("div", { class: "timer__card" }, labelEl, readout, primaryBtn, resetBtn);
   const wrap = el("div", { class: "timer" }, card, bar);
-  const paint = () => { readout.textContent = fmt(remaining); barFill.style.width = `${100 * (1 - remaining / totalSeconds)}%`; };
-  const controller = { stop: () => hardStop() };
-  function tick() { remaining -= 1; if (remaining <= 0) { remaining = 0; paint(); finish(); return; } paint(); }
-  function start() { ensureAudio(); if (statusName === "done") reset(); if (statusName === "running") return; statusName = "running"; card.classList.remove("done"); card.classList.add("running"); primaryBtn.innerHTML = ICON.pause; primaryBtn.setAttribute("aria-label", "Pause timer"); resetBtn.hidden = false; iv = setInterval(tick, 1000); activeTimers.add(controller); }
-  function pause() { statusName = "paused"; clearInterval(iv); iv = null; card.classList.remove("running"); primaryBtn.innerHTML = ICON.play; primaryBtn.setAttribute("aria-label", "Resume timer"); }
+  const paint = () => { readout.textContent = fmt(Math.max(0, remaining)); barFill.style.width = `${100 * (1 - Math.max(0, remaining) / totalSeconds)}%`; };
+  // wall-clock: recompute remaining from the target end time, so backgrounding/lock can't freeze it
+  const controller = { stop: () => hardStop(), sync: () => { if (statusName === "running") tick(); } };
+  function tick() {
+    if (statusName !== "running") return;
+    remaining = Math.round((endAt - Date.now()) / 1000);
+    if (remaining <= 0) { remaining = 0; paint(); finish(); return; }
+    paint();
+  }
+  function start() { ensureAudio(); ensureNotifyPermission(); if (statusName === "done") reset(); if (statusName === "running") return; statusName = "running"; endAt = Date.now() + remaining * 1000; card.classList.remove("done"); card.classList.add("running"); primaryBtn.innerHTML = ICON.pause; primaryBtn.setAttribute("aria-label", "Pause timer"); resetBtn.hidden = false; iv = setInterval(tick, 500); activeTimers.add(controller); }
+  function pause() { statusName = "paused"; remaining = Math.max(0, Math.round((endAt - Date.now()) / 1000)); clearInterval(iv); iv = null; card.classList.remove("running"); primaryBtn.innerHTML = ICON.play; primaryBtn.setAttribute("aria-label", "Resume timer"); paint(); }
   function reset() { clearInterval(iv); iv = null; stopRinging(); remaining = totalSeconds; statusName = "idle"; card.classList.remove("running", "done"); labelEl.textContent = label; primaryBtn.innerHTML = ICON.play; primaryBtn.setAttribute("aria-label", "Start timer"); resetBtn.hidden = true; paint(); }
-  function finish() { clearInterval(iv); iv = null; statusName = "done"; card.classList.remove("running"); card.classList.add("done"); primaryBtn.innerHTML = ICON.bell; primaryBtn.setAttribute("aria-label", "Stop alarm"); labelEl.textContent = `${label} \u2014 done`; if (navigator.vibrate) { try { navigator.vibrate([200, 120, 200]); } catch (e) {} } ringPattern(); ringIv = setInterval(ringPattern, 2000); }
+  function finish() { clearInterval(iv); iv = null; statusName = "done"; card.classList.remove("running"); card.classList.add("done"); primaryBtn.innerHTML = ICON.bell; primaryBtn.setAttribute("aria-label", "Stop alarm"); labelEl.textContent = `${label} \u2014 done`; if (navigator.vibrate) { try { navigator.vibrate([200, 120, 200]); } catch (e) {} } ringPattern(); ringIv = setInterval(ringPattern, 2000); notifyTimerDone(label); }
   function stopRinging() { if (ringIv) { clearInterval(ringIv); ringIv = null; } }
   function hardStop() { clearInterval(iv); iv = null; stopRinging(); activeTimers.delete(controller); }
   primaryBtn.addEventListener("click", () => { if (statusName === "running") pause(); else if (statusName === "done") reset(); else start(); });
@@ -1773,3 +1779,21 @@ function buildTimer(totalSeconds, label) {
   return wrap;
 }
 function stopAllTimers() { for (const t of Array.from(activeTimers)) t.stop(); activeTimers.clear(); }
+// when the app returns to the foreground, immediately resync every running timer
+function resyncTimers() { for (const t of Array.from(activeTimers)) { if (t.sync) t.sync(); } }
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { if (audioCtx && audioCtx.state === "suspended") audioCtx.resume(); resyncTimers(); } });
+window.addEventListener("focus", resyncTimers);
+window.addEventListener("pageshow", resyncTimers);
+
+/* ---- notifications when a timer finishes in the background ---- */
+function ensureNotifyPermission() {
+  try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission().catch(() => {}); } catch (e) {}
+}
+function notifyTimerDone(label) {
+  try {
+    if (document.visibilityState === "visible") return;      // you're looking — the on-screen alarm is enough
+    if (!("Notification" in window) || Notification.permission !== "granted") return;
+    const n = new Notification(`${SITE_NAME}: ${label} \u2014 done`, { body: "Your timer has finished.", tag: "mise-timer", renotify: true });
+    n.onclick = () => { try { window.focus(); n.close(); } catch (e) {} };
+  } catch (e) {}
+}
