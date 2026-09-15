@@ -1,0 +1,115 @@
+{
+  "slug": "smoky-chicken-enchiladas",
+  "title": "Smoky Chicken Enchiladas",
+  "subtitle": "From scratch \u00b7 no kit needed \u00b7 serves 6",
+  "description": "Chicken thigh, peppers and onions in a homemade smoky-barbecue fajita seasoning, bound in a passata-based enchilada sauce, rolled into tortillas and baked under cheese. Everything the Old El Paso box gives you, made from cupboard spices.",
+  "source": { "name": "Homemade (Old El Paso kit copycat)", "url": "" },
+  "cuisine": "Mexican",
+  "course": "Dinner",
+  "tags": ["enchiladas", "chicken", "mexican", "from scratch", "family"],
+  "diets": [],
+  "prepTime": 15,
+  "cookTime": 45,
+  "totalTime": 60,
+  "added": "2026-09-15",
+  "servings": 6,
+  "servingsNoun": "people",
+  "ingredients": [
+    { "id": "sauce-oil", "amount": 1, "unit": "tbsp", "item": "vegetable oil", "group": "For the enchilada sauce" },
+    { "id": "sauce-cumin", "amount": 2, "unit": "tsp", "item": "ground cumin", "group": "For the enchilada sauce" },
+    { "id": "sauce-paprika", "amount": 2.5, "unit": "tsp", "item": "sweet paprika", "group": "For the enchilada sauce" },
+    { "id": "sauce-smoked-paprika", "amount": 1, "unit": "tsp", "item": "smoked paprika", "group": "For the enchilada sauce" },
+    { "id": "sauce-chilli", "amount": 1, "unit": "tsp", "item": "mild chilli powder", "group": "For the enchilada sauce" },
+    { "id": "sauce-garlic", "amount": 1, "unit": "tsp", "item": "garlic powder", "group": "For the enchilada sauce" },
+    { "id": "sauce-onion", "amount": 1.5, "unit": "tsp", "item": "onion powder", "group": "For the enchilada sauce" },
+    { "id": "sauce-oregano", "amount": 2, "unit": "tsp", "item": "dried oregano", "group": "For the enchilada sauce" },
+    { "id": "sauce-cloves", "amount": 0.125, "unit": "tsp", "item": "ground cloves", "group": "For the enchilada sauce" },
+    { "id": "passata", "amount": 400, "unit": "ml", "item": "passata", "group": "For the enchilada sauce" },
+    { "id": "tomato-puree", "amount": 2, "unit": "tbsp", "item": "tomato pur\u00e9e", "group": "For the enchilada sauce" },
+    { "id": "sauce-water", "amount": 100, "unit": "ml", "item": "water", "group": "For the enchilada sauce" },
+    { "id": "sauce-sugar", "amount": 2, "unit": "tsp", "item": "sugar", "group": "For the enchilada sauce" },
+    { "id": "sauce-salt", "amount": 1, "unit": "tsp", "item": "salt", "group": "For the enchilada sauce" },
+    { "id": "sauce-cornflour", "amount": 1, "unit": "tbsp", "item": "cornflour", "group": "For the enchilada sauce" },
+
+    { "id": "faj-smoked-paprika", "amount": 2, "unit": "tsp", "item": "smoked paprika", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-paprika", "amount": 1, "unit": "tsp", "item": "sweet paprika", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-cumin", "amount": 2, "unit": "tsp", "item": "ground cumin", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-garlic", "amount": 1, "unit": "tsp", "item": "garlic powder", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-onion", "amount": 1, "unit": "tsp", "item": "onion powder", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-sugar", "amount": 2, "unit": "tsp", "item": "soft brown sugar", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-salt", "amount": 1, "unit": "tsp", "item": "salt", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-cornflour", "amount": 2, "unit": "tsp", "item": "cornflour", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-chilli", "amount": 1, "unit": "tsp", "item": "mild chilli powder", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-oregano", "amount": 1, "unit": "tsp", "item": "dried oregano", "group": "For the smoky fajita seasoning" },
+    { "id": "faj-pepper", "amount": 0.5, "unit": "tsp", "item": "black pepper", "group": "For the smoky fajita seasoning" },
+
+    { "id": "oil", "amount": null, "unit": "", "item": "vegetable oil", "note": "for frying", "group": "For the filling & to assemble" },
+    { "id": "chicken", "amount": 600, "unit": "g", "item": "boneless chicken thighs", "note": "diced", "group": "For the filling & to assemble" },
+    { "id": "onion", "amount": 2, "unit": "", "item": "onions", "note": "sliced", "gramsEach": 150, "group": "For the filling & to assemble" },
+    { "id": "pepper", "amount": 2, "unit": "", "item": "mixed peppers", "note": "sliced", "gramsEach": 160, "group": "For the filling & to assemble" },
+    { "id": "cheddar", "amount": 300, "unit": "g", "item": "cheddar", "note": "grated", "group": "For the filling & to assemble" },
+    { "id": "wraps", "amount": 12, "unit": "", "item": "small tortilla wraps", "group": "For the filling & to assemble" }
+  ],
+  "variants": [],
+  "steps": [
+    {
+      "text": "Warm the {{sauce-oil}} in a saucepan over medium heat and stir in the {{sauce-cumin}}, {{sauce-paprika}}, {{sauce-smoked-paprika}}, {{sauce-chilli}}, {{sauce-garlic}}, {{sauce-onion}}, {{sauce-oregano}} and {{sauce-cloves}}. Cook until fragrant, then pour in the {{passata}}, {{tomato-puree}}, {{sauce-water}}, {{sauce-sugar}} and {{sauce-salt}}.",
+      "timer": { "minutes": 1, "label": "Bloom the sauce spices" }
+    },
+    {
+      "text": "Simmer gently to develop the flavour. Mix the {{sauce-cornflour}} with a splash of cold water, stir it in and cook until glossy. Blitz smooth with a stick blender if you like, then set the sauce aside.",
+      "timer": { "minutes": 10, "label": "Simmer the sauce" }
+    },
+    {
+      "text": "In a small bowl, stir together the {{faj-smoked-paprika}}, {{faj-paprika}}, {{faj-cumin}}, {{faj-garlic}}, {{faj-onion}}, {{faj-sugar}}, {{faj-salt}}, {{faj-cornflour}}, {{faj-chilli}}, {{faj-oregano}} and {{faj-pepper}} to make the smoky fajita seasoning."
+    },
+    {
+      "text": "Heat the oven to 200\u00b0C / 180\u00b0C fan. Fry the {{chicken}} in a little {{oil}} over high heat until sealed all over, then cook 1 minute more.",
+      "timer": { "minutes": 6, "label": "Seal the chicken" }
+    },
+    {
+      "text": "Add the {{onion}} and {{pepper}} and cook until soft and lightly charred at the edges.",
+      "timer": { "minutes": 8, "label": "Cook peppers & onions" }
+    },
+    {
+      "text": "Scatter in the fajita seasoning and stir for a minute or two until everything is coated and aromatic.",
+      "timer": { "minutes": 2, "label": "Toast the seasoning" }
+    },
+    {
+      "text": "Stir in HALF the enchilada sauce and half the {{cheddar}} to make a thick filling. Keep the other half of the sauce and cheese back for the top."
+    },
+    {
+      "text": "Spoon the filling down the middle of each {{wraps}}, roll up, and lay them seam-side down in a baking dish."
+    },
+    {
+      "text": "Spoon over the reserved sauce to cover, then scatter with the reserved cheese."
+    },
+    {
+      "text": "Bake until the sauce is bubbling and the cheese is golden. Rest a couple of minutes before serving.",
+      "timer": { "minutes": 20, "label": "Bake the enchiladas" }
+    }
+  ],
+  "notes": [
+    "Makes 12 enchiladas \u2014 two per person for six.",
+    "The sauce and seasoning here are homemade stand-ins for the two Old El Paso kit sachets. Both scale with the servings, so you always make the right amount.",
+    "Heat is mild like the kit. For medium, add a pinch of cayenne to the seasoning or bump the sauce chilli.",
+    "Good with soured cream, guacamole and rice on the side.",
+    "The smoky-barbecue note comes from the smoked paprika plus brown sugar in the seasoning \u2014 a little grated dark chocolate or \u00bd tsp cocoa in the sauce deepens it further if you want."
+  ],
+  "nutrition": {
+    "note": "Rough estimate for the recipe as written, per person (two enchiladas). Actual values depend on your wraps, cheese and cut of chicken.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 6,
+    "items": [
+      { "label": "Energy", "unit": "kJ", "perServing": 3050, "ri": 8400 },
+      { "label": "", "unit": "kcal", "perServing": 730, "ri": 2000 },
+      { "label": "Fat", "unit": "g", "perServing": 34, "ri": 70 },
+      { "label": "of which saturates", "unit": "g", "perServing": 15, "ri": 20, "sub": true },
+      { "label": "Carbohydrate", "unit": "g", "perServing": 52, "ri": 260 },
+      { "label": "of which sugars", "unit": "g", "perServing": 12, "ri": 90, "sub": true },
+      { "label": "Fibre", "unit": "g", "perServing": 5 },
+      { "label": "Protein", "unit": "g", "perServing": 42, "ri": 50 },
+      { "label": "Salt", "unit": "g", "perServing": 2.9, "ri": 6 }
+    ]
+  }
+}
