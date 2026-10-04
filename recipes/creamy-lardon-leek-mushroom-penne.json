@@ -26,22 +26,41 @@
     { "id": "salt", "amount": null, "unit": "", "item": "salt", "note": "to taste" },
     { "id": "penne", "amount": 500, "unit": "g", "item": "penne" }
   ],
-  "variants": [],
+  "variants": [
+    {
+      "id": "vegetarian",
+      "label": "Vegetarian",
+      "diets": ["vegetarian"],
+      "swaps": {
+        "lardons": { "remove": true },
+        "oil": { "amount": 2, "unit": "tbsp" }
+      }
+    },
+    {
+      "id": "gluten-free",
+      "label": "Gluten-free",
+      "diets": ["gluten-free"],
+      "swaps": {
+        "penne": { "item": "gluten-free penne" },
+        "lardons": { "note": "check the pack is gluten-free" }
+      }
+    }
+  ],
   "steps": [
-    { "text": "Heat a little {{oil}} in a large, deep pan and fry the {{lardons}} until mostly cooked.", "timer": { "minutes": 6, "label": "Fry the lardons" } },
-    { "text": "Add the {{leek}} and {{garlic}} and fry, breaking the leek rings apart as they soften.", "timer": { "minutes": 3, "label": "Fry leek & garlic" } },
-    { "text": "Add the {{mushrooms}} and fry until cooked through.", "timer": { "minutes": 8, "label": "Fry the mushrooms" } },
-    { "text": "Meanwhile, cook the {{penne}} in boiling water until just short of al dente. Scoop out and keep a mug of the pasta water before draining.", "timer": { "minutes": 9, "label": "Cook the penne" }, "note": "Aim for 1–2 minutes less than the packet time — it finishes cooking in the sauce." },
+    { "text": "Heat a little {{oil}} in a large, deep pan and fry the {{lardons}} until mostly cooked.", "textByVariant": { "vegetarian": "" }, "timer": { "minutes": 6, "label": "Fry the lardons" } },
+    { "text": "Add the {{leek}} and {{garlic}} and fry, breaking the leek rings apart as they soften.", "textByVariant": { "vegetarian": "Heat the {{oil}} in a large, deep pan, add the {{leek}} and {{garlic}} and fry, breaking the leek rings apart as they soften." }, "timer": { "minutes": 3, "label": "Fry leek & garlic" } },
+    { "text": "Add the {{mushrooms}} and fry until cooked through.", "textByVariant": { "vegetarian": "Add the {{mushrooms}} and fry until well browned — they carry the savoury flavour without the lardons." }, "timer": { "minutes": 8, "label": "Fry the mushrooms" } },
+    { "text": "Meanwhile, cook the {{penne}} in boiling water until just short of al dente. Scoop out and keep a mug of the pasta water before draining.", "timer": { "minutes": 9, "label": "Cook the penne" }, "note": "Aim for 1–2 minutes less than the packet time — it finishes cooking in the sauce. Gluten-free pasta can turn soft quickly, so keep an eye on it." },
     { "text": "Pour the {{wine}} into the sauce and let it bubble until mostly evaporated.", "timer": { "minutes": 3, "label": "Reduce the wine" } },
     { "text": "Stir in the {{cream}}, {{tarragon}} and a good grind of {{pepper}}, then simmer gently.", "timer": { "minutes": 10, "label": "Simmer the sauce" } },
     { "text": "Tip the drained {{penne}} into the sauce and stir over the heat until it's cooked. Loosen with splashes of the reserved pasta water until the sauce is as thick as you like, then season with {{salt}} to taste.", "timer": { "minutes": 2, "label": "Finish the pasta" } }
   ],
   "notes": [
-    "Lardons are already salty, so taste before adding any salt at the end.",
+    "Lardons are already salty, so taste before adding any salt at the end. The vegetarian version will need more.",
     "Get the pasta water on while the lardons fry so the penne is ready around the time the sauce has simmered."
   ],
   "nutrition": {
-    "note": "Rough estimate assuming double cream and smoked lardons; single cream will bring the fat and calories down a lot.",
+    "note": "Rough estimate for the original (lardon) version, assuming double cream and smoked lardons; single cream will bring the fat and calories down a lot.",
     "servingLabel": "Per serving",
     "servingsPerRecipe": 4,
     "items": [
