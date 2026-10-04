@@ -1,0 +1,87 @@
+{
+  "slug": "creamy-lardon-leek-mushroom-penne",
+  "added": "2026-10-04",
+  "title": "Creamy Lardon, Leek and Mushroom Penne",
+  "subtitle": "White wine & tarragon cream · ready in about 45 minutes",
+  "description": "Crisp lardons, soft leek, garlic and mushrooms in a white wine and tarragon cream sauce, with the penne finished in the pan.",
+  "cuisine": "French-inspired",
+  "course": "Dinner",
+  "tags": ["pasta", "penne", "lardons", "leek", "mushrooms", "cream", "dinner"],
+  "diets": [],
+  "prepTime": 10,
+  "cookTime": 35,
+  "totalTime": 45,
+  "servings": 4,
+  "servingsNoun": "servings",
+  "ingredients": [
+    { "id": "oil", "amount": null, "unit": "", "item": "olive oil", "note": "for frying" },
+    { "id": "lardons", "amount": 500, "unit": "g", "item": "lardons" },
+    { "id": "leek", "amount": 1, "unit": "", "item": "large leek", "note": "cut into slices", "gramsEach": 300 },
+    { "id": "garlic", "amount": 6, "unit": "", "item": "garlic cloves", "note": "finely chopped" },
+    { "id": "mushrooms", "amount": 220, "unit": "g", "item": "mushrooms", "note": "chopped" },
+    { "id": "wine", "amount": 180, "unit": "ml", "item": "white wine" },
+    { "id": "cream", "amount": 500, "unit": "ml", "item": "cream" },
+    { "id": "tarragon", "amount": 1, "unit": "tsp", "item": "tarragon" },
+    { "id": "pepper", "amount": null, "unit": "", "item": "black pepper", "note": "freshly ground" },
+    { "id": "salt", "amount": null, "unit": "", "item": "salt", "note": "to taste" },
+    { "id": "penne", "amount": 500, "unit": "g", "item": "penne" }
+  ],
+  "variants": [
+    {
+      "id": "vegetarian",
+      "label": "Vegetarian",
+      "diets": ["vegetarian"],
+      "swaps": {
+        "lardons": { "remove": true },
+        "oil": { "amount": 2, "unit": "tbsp" }
+      }
+    },
+    {
+      "id": "gluten-free",
+      "label": "Gluten-free",
+      "diets": ["gluten-free"],
+      "swaps": {
+        "penne": { "item": "gluten-free penne" },
+        "lardons": { "note": "check the pack is gluten-free" }
+      }
+    }
+  ],
+  "steps": [
+    { "text": "Heat a little {{oil}} in a large, deep pan and fry the {{lardons}} until mostly cooked.", "textByVariant": { "vegetarian": "" }, "timer": { "minutes": 6, "label": "Fry the lardons" } },
+    { "text": "Add the {{leek}} and {{garlic}} and fry, breaking the leek rings apart as they soften.", "textByVariant": { "vegetarian": "Heat the {{oil}} in a large, deep pan, add the {{leek}} and {{garlic}} and fry, breaking the leek rings apart as they soften." }, "timer": { "minutes": 3, "label": "Fry leek & garlic" } },
+    { "text": "Add the {{mushrooms}} and fry until cooked through.", "textByVariant": { "vegetarian": "Add the {{mushrooms}} and fry until well browned — they carry the savoury flavour without the lardons." }, "timer": { "minutes": 8, "label": "Fry the mushrooms" } },
+    { "text": "Meanwhile, cook the {{penne}} in boiling water until just short of al dente. Scoop out and keep a mug of the pasta water before draining.", "timer": { "minutes": 9, "label": "Cook the penne" }, "note": "Aim for 1–2 minutes less than the packet time — it finishes cooking in the sauce. Gluten-free pasta can turn soft quickly, so keep an eye on it." },
+    { "text": "Pour the {{wine}} into the sauce and let it bubble until mostly evaporated.", "timer": { "minutes": 3, "label": "Reduce the wine" } },
+    { "text": "Stir in the {{cream}}, {{tarragon}} and a good grind of {{pepper}}, then simmer gently.", "timer": { "minutes": 10, "label": "Simmer the sauce" } },
+    { "text": "Tip the drained {{penne}} into the sauce and stir over the heat until it's cooked. Loosen with splashes of the reserved pasta water until the sauce is as thick as you like, then season with {{salt}} to taste.", "timer": { "minutes": 2, "label": "Finish the pasta" } }
+  ],
+  "notes": [
+    "Lardons are already salty, so taste before adding any salt at the end. The vegetarian version will need more.",
+    "Get the pasta water on while the lardons fry so the penne is ready around the time the sauce has simmered."
+  ],
+  "nutrition": {
+    "note": "Rough estimate for the original (lardon) version, assuming double cream and smoked lardons; single cream will bring the fat and calories down a lot.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 4,
+    "items": [
+      { "label": "Energy", "unit": "kJ", "perServing": 6150, "ri": 8400 },
+      { "label": "", "unit": "kcal", "perServing": 1470, "ri": 2000 },
+      { "label": "Fat", "unit": "g", "perServing": 95, "ri": 70 },
+      { "label": "of which saturates", "unit": "g", "perServing": 50, "ri": 20, "sub": true },
+      { "label": "Carbohydrate", "unit": "g", "perServing": 100, "ri": 260 },
+      { "label": "of which sugars", "unit": "g", "perServing": 9, "ri": 90, "sub": true },
+      { "label": "Fibre", "unit": "g", "perServing": 6 },
+      { "label": "Protein", "unit": "g", "perServing": 40, "ri": 50 },
+      { "label": "Salt", "unit": "g", "perServing": 4.2, "ri": 6 }
+    ]
+  },
+  "flow": [
+    { "id": "fry1", "op": "fry until mostly cooked", "in": ["oil", "lardons"] },
+    { "id": "fry2", "op": "fry 3 min", "in": ["fry1", "leek", "garlic"] },
+    { "id": "fry3", "op": "fry 8 min", "in": ["fry2", "mushrooms"] },
+    { "id": "reduce", "op": "reduce", "in": ["fry3", "wine"] },
+    { "id": "sauce", "op": "simmer 10 min", "in": ["reduce", "cream", "tarragon", "pepper"] },
+    { "id": "boil", "op": "boil until nearly al dente", "in": ["penne"] },
+    { "id": "finish", "op": "toss & season", "in": ["sauce", "boil", "salt"] }
+  ]
+}
