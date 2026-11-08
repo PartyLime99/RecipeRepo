@@ -1,0 +1,110 @@
+{
+  "slug": "really-good-kedgeree",
+  "title": "Really Good Kedgeree",
+  "subtitle": "Smoked haddock, curried rice & soft-boiled eggs · under an hour",
+  "description": "Smoked haddock poached with bay, basmati cooked in the fish liquor, then folded through buttery curried onions with peas, cream, parsley and lemon, and topped with quartered boiled eggs.",
+  "source": { "name": "BBC Food", "url": "https://www.bbc.co.uk/food/recipes/really_good_kedgeree_75198" },
+  "cuisine": "British",
+  "course": "Brunch",
+  "tags": ["kedgeree", "smoked haddock", "fish", "rice", "eggs", "brunch", "curry"],
+  "diets": ["pescatarian", "gluten-free"],
+  "prepTime": 15,
+  "cookTime": 35,
+  "totalTime": 50,
+  "added": "2026-11-08",
+  "servings": 4,
+  "servingsNoun": "people",
+  "ingredients": [
+    { "id": "haddock", "amount": 475, "unit": "g", "item": "undyed smoked haddock fillet", "note": "cut in half" },
+    { "id": "water", "amount": 500, "unit": "ml", "item": "water", "note": "for poaching" },
+    { "id": "bay", "amount": 2, "unit": "", "item": "bay leaves" },
+    { "id": "rice", "amount": 200, "unit": "g", "item": "basmati rice", "note": "rinsed in cold water and drained" },
+    { "id": "eggs", "amount": 4, "unit": "", "item": "free-range eggs" },
+    { "id": "peas", "amount": 100, "unit": "g", "item": "frozen peas", "note": "optional" },
+    { "id": "butter", "amount": 40, "unit": "g", "item": "butter" },
+    { "id": "oil", "amount": 1, "unit": "tbsp", "item": "sunflower oil" },
+    { "id": "onion", "amount": 1, "unit": "", "item": "onion", "note": "finely chopped", "gramsEach": 150 },
+    { "id": "curry", "amount": 1, "unit": "tbsp", "item": "medium curry powder", "note": "heaped" },
+    { "id": "cream", "amount": 3, "unit": "tbsp", "item": "double cream" },
+    { "id": "pepper", "amount": null, "unit": "", "item": "black pepper", "note": "freshly ground" },
+    { "id": "parsley", "amount": 3, "unit": "tbsp", "item": "fresh flatleaf parsley", "note": "chopped" },
+    { "id": "lemon", "amount": 0.5, "unit": "", "item": "lemon", "note": "juice only" }
+  ],
+  "variants": [],
+  "steps": [
+    {
+      "text": "Lay the {{haddock}} skin-side up in a large frying pan. Add the {{water}} and {{bay}}, then bring to a gentle simmer."
+    },
+    {
+      "text": "Poach until the fish is just cooked and flakes easily. Drain through a colander set over a bowl so you keep the cooking liquid, and throw away the bay leaves.",
+      "timer": { "minutes": 9, "label": "Poach the haddock" }
+    },
+    {
+      "text": "Tip the reserved liquid into a saucepan, stir in the {{rice}}, cover and bring to the boil. Turn the heat right down and simmer very gently.",
+      "timer": { "minutes": 10, "label": "Simmer the rice" }
+    },
+    {
+      "text": "Turn the heat off and leave the rice covered until it has soaked up all the liquid.",
+      "timer": { "minutes": 4, "label": "Rest the rice" }
+    },
+    {
+      "text": "Meanwhile, lower the {{eggs}} into a small pan of boiling water. Drain, cool under cold running water, then peel and set aside.",
+      "timer": { "minutes": 8, "label": "Boil the eggs" }
+    },
+    {
+      "text": "If using, cook the {{peas}} in a little boiling water and drain.",
+      "timer": { "minutes": 3, "label": "Cook the peas" }
+    },
+    {
+      "text": "Melt the {{butter}} with the {{oil}} in a large frying pan. Add the {{onion}} and cook over a low heat, stirring now and then, until well softened.",
+      "timer": { "minutes": 5, "label": "Soften the onion" }
+    },
+    {
+      "text": "Add the {{curry}} and cook, stirring constantly.",
+      "timer": { "minutes": 3, "label": "Cook the curry powder" }
+    },
+    {
+      "text": "Stir the cooked rice into the onions, then add the peas, {{cream}}, {{parsley}} and a few twists of {{pepper}}."
+    },
+    {
+      "text": "Break the haddock into chunky flakes and add to the pan. Gently stir in the juice of the {{lemon}} and heat through.",
+      "timer": { "minutes": 2, "label": "Heat the fish through" }
+    },
+    {
+      "text": "Quarter the eggs and arrange them on top. Cover with a lid until the eggs are warm, then serve.",
+      "timer": { "minutes": 3, "label": "Warm the eggs" }
+    }
+  ],
+  "notes": [
+    "Not serving straight away? Tip it into a warm dish, dot with a few cubes of butter, cover with foil and keep warm in a low oven for up to 20 minutes.",
+    "Hot-smoked salmon version: skip poaching the fish and cook the rice in 500ml light chicken stock instead. Flake the salmon in with the peas.",
+    "Check the curry powder label if you need it to be strictly gluten-free."
+  ],
+  "flow": [
+    { "id": "poach", "op": "poach 8–10 min", "in": ["haddock", "water", "bay"] },
+    { "id": "cook-rice", "op": "simmer in fish liquor, rest", "in": ["rice", "poach"] },
+    { "id": "boil-eggs", "op": "boil 8 min, peel", "in": ["eggs"] },
+    { "id": "boil-peas", "op": "boil, drain", "in": ["peas"] },
+    { "id": "soften", "op": "soften 5 min", "in": ["butter", "oil", "onion"] },
+    { "id": "spice", "op": "fry 3 min", "in": ["soften", "curry"] },
+    { "id": "combine", "op": "stir together", "in": ["spice", "cook-rice", "boil-peas", "cream", "parsley", "pepper"] },
+    { "id": "fish-in", "op": "flake fish in, add lemon", "in": ["combine", "lemon"] },
+    { "id": "finish", "op": "top with eggs, cover 2–3 min", "in": ["fish-in", "boil-eggs"] }
+  ],
+  "nutrition": {
+    "note": "Rough estimate from the ingredients (with peas); smoked haddock salt varies a lot by brand.",
+    "servingLabel": "Per serving",
+    "servingsPerRecipe": 4,
+    "items": [
+      { "label": "Energy", "unit": "kJ", "perServing": 2390, "ri": 8400 },
+      { "label": "", "unit": "kcal", "perServing": 570, "ri": 2000 },
+      { "label": "Fat", "unit": "g", "perServing": 25, "ri": 70 },
+      { "label": "of which saturates", "unit": "g", "perServing": 11, "ri": 20, "sub": true },
+      { "label": "Carbohydrate", "unit": "g", "perServing": 47, "ri": 260 },
+      { "label": "of which sugars", "unit": "g", "perServing": 3, "ri": 90, "sub": true },
+      { "label": "Fibre", "unit": "g", "perServing": 3 },
+      { "label": "Protein", "unit": "g", "perServing": 40, "ri": 50 },
+      { "label": "Salt", "unit": "g", "perServing": 2.5, "ri": 6 }
+    ]
+  }
+}
