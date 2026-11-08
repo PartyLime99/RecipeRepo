@@ -336,7 +336,7 @@ function route() {
 /* ============================================================
    LIST PAGE
    ============================================================ */
-let LIST_STATE = { recipes: [], query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set(), sort: "name" };
+let LIST_STATE = { recipes: [], query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set(), sort: "most" };
 const emptyFilters = () => ({ recipes: LIST_STATE.recipes, query: "", cuisines: new Set(), diets: new Set(), favOnly: false, inc: new Set(), exc: new Set(), sort: LIST_STATE.sort });
 const anyFilterActive = () => LIST_STATE.query || LIST_STATE.cuisines.size || LIST_STATE.diets.size || LIST_STATE.favOnly || LIST_STATE.inc.size || LIST_STATE.exc.size;
 let PICK_MODE = false;
